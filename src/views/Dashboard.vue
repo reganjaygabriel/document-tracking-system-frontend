@@ -120,8 +120,11 @@
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
                   <div 
-                    :class="`h-2 rounded-full ${status.color}`"
-                    :style="{ width: status.percentage + '%' }"
+                    class="h-2 rounded-full transition-all duration-300"
+                    :style="{ 
+                      width: status.percentage + '%',
+                      backgroundColor: getStatusColor(status.name)
+                    }"
                   ></div>
                 </div>
               </div>
@@ -219,7 +222,6 @@
                       >
                         View
                       </button>
-                      <button class="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium transition-colors duration-200">Edit</button>
                       <button class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition-colors duration-200">Delete</button>
                     </div>
                   </td>
@@ -425,6 +427,478 @@
       </div>
     </div>
 
+    <!-- Export Data Modal -->
+    <div v-if="showExportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col animate-fadeIn">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-blue-50">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+              <span class="text-3xl mr-3">💾</span>
+              Export Documents
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Select documents to export to CSV file</p>
+          </div>
+          <button 
+            @click="closeExportModal" 
+            class="text-gray-400 hover:text-gray-600 hover:bg-white rounded-full p-2 transition-all duration-200"
+          >
+            <span class="text-2xl">✕</span>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="flex-1 overflow-hidden flex flex-col p-6">
+          <!-- Select All -->
+          <div class="mb-4 pb-4 border-b border-gray-200">
+            <label class="flex items-center space-x-3 cursor-pointer hover:bg-primary-50 p-4 rounded-xl transition-all duration-200 group">
+              <input 
+                type="checkbox" 
+                :checked="selectedDocuments.length === documents.length && documents.length > 0"
+                @change="toggleSelectAll"
+                class="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 cursor-pointer"
+              />
+              <div class="flex-1">
+                <span class="font-semibold text-gray-900 text-lg group-hover:text-primary-600 transition-colors">
+                  Select All Documents
+                </span>
+                <p class="text-sm text-gray-500">{{ documents.length }} documents available</p>
+              </div>
+              <span class="text-2xl group-hover:scale-110 transition-transform">📋</span>
+            </label>
+          </div>
+
+          <!-- Document List -->
+          <div class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            <label 
+              v-for="doc in documents" 
+              :key="doc.id"
+              class="flex items-center space-x-3 p-4 hover:bg-gradient-to-r hover:from-primary-50 hover:to-blue-50 rounded-xl cursor-pointer transition-all duration-200 border-2 border-transparent hover:border-primary-200 group"
+              :class="{ 'bg-primary-50 border-primary-300': selectedDocuments.includes(doc.id) }"
+            >
+              <input 
+                type="checkbox" 
+                :checked="selectedDocuments.includes(doc.id)"
+                @change="toggleDocumentSelection(doc.id)"
+                class="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 cursor-pointer"
+              />
+              <span class="text-3xl group-hover:scale-110 transition-transform">{{ doc.icon }}</span>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-gray-900 truncate group-hover:text-primary-600 transition-colors">
+                  {{ doc.name }}
+                </p>
+                <p class="text-sm text-gray-500">
+                  {{ doc.type }} • {{ doc.size }} • {{ doc.lastModified }}
+                </p>
+              </div>
+              <span 
+                :class="getStatusClass(doc.status)"
+                class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm"
+              >
+                {{ doc.status }}
+              </span>
+            </label>
+          </div>
+
+          <!-- Selection Summary -->
+          <div class="mt-4 pt-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50 -mx-6 px-6 py-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="text-2xl">📊</span>
+                <p class="text-sm text-gray-700">
+                  <span class="font-bold text-primary-600 text-lg">{{ selectedDocuments.length }}</span> 
+                  <span class="text-gray-600">of</span>
+                  <span class="font-bold text-gray-900 text-lg">{{ documents.length }}</span> 
+                  <span class="text-gray-600">documents selected</span>
+                </p>
+              </div>
+              <div v-if="selectedDocuments.length > 0" class="text-sm text-primary-600 font-medium animate-pulse">
+                Ready to export ✓
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+          <button 
+            @click="closeExportModal"
+            :disabled="isExporting"
+            class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white hover:border-gray-400 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="exportToCSV"
+            :disabled="selectedDocuments.length === 0 || isExporting"
+            class="px-8 py-3 bg-gradient-to-r from-primary-600 to-blue-600 text-white rounded-xl hover:from-primary-700 hover:to-blue-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            <span v-if="!isExporting" class="flex items-center">
+              <span class="text-xl mr-2">💾</span>
+              Export {{ selectedDocuments.length > 0 ? `(${selectedDocuments.length})` : '' }}
+            </span>
+            <span v-else class="flex items-center">
+              <svg class="animate-spin h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Exporting...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scan Document Modal -->
+    <div v-if="showScanModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl animate-fadeIn">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-green-50">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+              <span class="text-3xl mr-3">📷</span>
+              Scan Document
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Upload and process scanned documents</p>
+          </div>
+          <button 
+            @click="closeScanModal" 
+            class="text-gray-400 hover:text-gray-600 hover:bg-white rounded-full p-2 transition-all duration-200"
+          >
+            <span class="text-2xl">✕</span>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-6">
+          <!-- File Upload Area -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3">
+              Select Scanned Image
+            </label>
+            <div 
+              class="border-2 border-dashed rounded-xl p-8 text-center transition-all border-gray-300 hover:border-primary-400"
+            >
+              <input 
+                ref="scanFileInput"
+                type="file" 
+                @change="handleScanFileSelect"
+                accept="image/*"
+                class="hidden"
+              />
+              
+              <div v-if="!scanFile">
+                <span class="text-6xl mb-4 block">📷</span>
+                <p class="text-gray-600 mb-2">Select a scanned image file</p>
+                <button 
+                  type="button"
+                  @click="$refs.scanFileInput.click()"
+                  class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+                >
+                  Browse Files
+                </button>
+                <p class="text-xs text-gray-500 mt-3">
+                  Supported: JPG, PNG, GIF, BMP (Max 20MB)
+                </p>
+              </div>
+
+              <div v-else class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <span class="text-4xl">🖼️</span>
+                  <div class="text-left">
+                    <p class="font-medium text-gray-900">{{ scanFile.name }}</p>
+                    <p class="text-sm text-gray-500">{{ formatFileSize(scanFile.size) }}</p>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  @click="removeScanFile"
+                  class="text-red-600 hover:text-red-700 font-medium px-4 py-2 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scan Settings -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Quality -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Quality
+              </label>
+              <select
+                v-model="scanSettings.quality"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="high">High Quality</option>
+                <option value="medium">Medium Quality</option>
+                <option value="low">Low Quality</option>
+              </select>
+            </div>
+
+            <!-- Color Mode -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Color Mode
+              </label>
+              <select
+                v-model="scanSettings.colorMode"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="color">Color</option>
+                <option value="grayscale">Grayscale</option>
+                <option value="blackwhite">Black & White</option>
+              </select>
+            </div>
+
+            <!-- Output Format -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">
+                Output Format
+              </label>
+              <select
+                v-model="scanSettings.format"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="pdf">PDF</option>
+                <option value="jpg">JPG</option>
+                <option value="png">PNG</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Info Box -->
+          <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div class="flex items-start">
+              <span class="text-2xl mr-3">ℹ️</span>
+              <div>
+                <p class="text-sm text-green-900 font-medium">Scan Processing</p>
+                <p class="text-sm text-green-700 mt-1">
+                  Your scanned document will be processed and automatically uploaded to the system 
+                  with category "Scanned Documents" and status "Pending".
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+          <button 
+            @click="closeScanModal"
+            :disabled="isScanning"
+            class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white hover:border-gray-400 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="processScan"
+            :disabled="!scanFile || isScanning"
+            class="px-8 py-3 bg-gradient-to-r from-primary-600 to-green-600 text-white rounded-xl hover:from-primary-700 hover:to-green-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            <span v-if="!isScanning" class="flex items-center">
+              <span class="text-xl mr-2">📷</span>
+              Process & Upload
+            </span>
+            <span v-else class="flex items-center">
+              <svg class="animate-spin h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Processing...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Report Modal -->
+    <div v-if="showReportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl animate-fadeIn">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-purple-50">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+              <span class="text-3xl mr-3">📊</span>
+              Create Report
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Generate comprehensive document reports</p>
+          </div>
+          <button 
+            @click="closeReportModal" 
+            class="text-gray-400 hover:text-gray-600 hover:bg-white rounded-full p-2 transition-all duration-200"
+          >
+            <span class="text-2xl">✕</span>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-6">
+          <!-- Report Type Selection -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3">
+              Report Type
+            </label>
+            <div class="grid grid-cols-1 gap-3">
+              <label 
+                class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary-400 hover:bg-primary-50"
+                :class="reportType === 'summary' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'"
+              >
+                <input 
+                  type="radio" 
+                  v-model="reportType" 
+                  value="summary"
+                  class="w-5 h-5 text-primary-600 focus:ring-primary-500"
+                />
+                <div class="ml-3 flex-1">
+                  <div class="flex items-center">
+                    <span class="text-2xl mr-2">📋</span>
+                    <span class="font-semibold text-gray-900">Summary Report</span>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1">Overview with statistics and document list</p>
+                </div>
+              </label>
+
+              <label 
+                class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary-400 hover:bg-primary-50"
+                :class="reportType === 'detailed' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'"
+              >
+                <input 
+                  type="radio" 
+                  v-model="reportType" 
+                  value="detailed"
+                  class="w-5 h-5 text-primary-600 focus:ring-primary-500"
+                />
+                <div class="ml-3 flex-1">
+                  <div class="flex items-center">
+                    <span class="text-2xl mr-2">📄</span>
+                    <span class="font-semibold text-gray-900">Detailed Report</span>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1">Complete document information with all details</p>
+                </div>
+              </label>
+
+              <label 
+                class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary-400 hover:bg-primary-50"
+                :class="reportType === 'status' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'"
+              >
+                <input 
+                  type="radio" 
+                  v-model="reportType" 
+                  value="status"
+                  class="w-5 h-5 text-primary-600 focus:ring-primary-500"
+                />
+                <div class="ml-3 flex-1">
+                  <div class="flex items-center">
+                    <span class="text-2xl mr-2">📊</span>
+                    <span class="font-semibold text-gray-900">Status Report</span>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1">Documents grouped by status</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Format Selection -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-3">
+              Export Format
+            </label>
+            <div class="grid grid-cols-3 gap-3">
+              <label 
+                class="flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary-400 hover:bg-primary-50"
+                :class="reportFormat === 'pdf' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'"
+              >
+                <input 
+                  type="radio" 
+                  v-model="reportFormat" 
+                  value="pdf"
+                  class="sr-only"
+                />
+                <span class="text-3xl mb-2">📕</span>
+                <span class="font-semibold text-gray-900">PDF</span>
+                <span class="text-xs text-gray-500 mt-1">Print/Save</span>
+              </label>
+
+              <label 
+                class="flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary-400 hover:bg-primary-50"
+                :class="reportFormat === 'html' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'"
+              >
+                <input 
+                  type="radio" 
+                  v-model="reportFormat" 
+                  value="html"
+                  class="sr-only"
+                />
+                <span class="text-3xl mb-2">🌐</span>
+                <span class="font-semibold text-gray-900">HTML</span>
+                <span class="text-xs text-gray-500 mt-1">Web Page</span>
+              </label>
+
+              <label 
+                class="flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:border-primary-400 hover:bg-primary-50"
+                :class="reportFormat === 'csv' ? 'border-primary-500 bg-primary-50' : 'border-gray-200'"
+              >
+                <input 
+                  type="radio" 
+                  v-model="reportFormat" 
+                  value="csv"
+                  class="sr-only"
+                />
+                <span class="text-3xl mb-2">📊</span>
+                <span class="font-semibold text-gray-900">CSV</span>
+                <span class="text-xs text-gray-500 mt-1">Spreadsheet</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Report Info -->
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div class="flex items-start">
+              <span class="text-2xl mr-3">ℹ️</span>
+              <div>
+                <p class="text-sm text-blue-900 font-medium">Report Information</p>
+                <p class="text-sm text-blue-700 mt-1">
+                  This report will include data from <strong>{{ documents.length }} documents</strong> 
+                  currently in the system.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+          <button 
+            @click="closeReportModal"
+            :disabled="isGeneratingReport"
+            class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-white hover:border-gray-400 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="generateReport"
+            :disabled="isGeneratingReport"
+            class="px-8 py-3 bg-gradient-to-r from-primary-600 to-purple-600 text-white rounded-xl hover:from-primary-700 hover:to-purple-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-lg hover:shadow-xl transform hover:scale-105"
+          >
+            <span v-if="!isGeneratingReport" class="flex items-center">
+              <span class="text-xl mr-2">📊</span>
+              Generate Report
+            </span>
+            <span v-else class="flex items-center">
+              <svg class="animate-spin h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Generating...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- View Document Modal -->
     <div v-if="selectedDocument && showViewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
@@ -476,21 +950,55 @@
             </div>
 
             <!-- PDF Preview -->
-            <div v-else-if="selectedDocument.type === 'PDF' && selectedDocument.file_url" class="bg-gray-100 rounded-lg p-4">
-              <iframe 
-                :src="selectedDocument.file_url" 
-                class="w-full h-[600px] border-0 rounded"
-                title="PDF Preview"
-              ></iframe>
+            <div v-else-if="selectedDocument.type === 'PDF' && selectedDocument.file_url" class="bg-gray-100 rounded-lg p-8 text-center">
+              <span class="text-6xl mb-4 block">📕</span>
+              <p class="text-lg font-semibold text-gray-900 mb-2">PDF Document</p>
+              <p class="text-sm text-gray-600 mb-6">{{ selectedDocument.name }}</p>
+              <div class="flex justify-center space-x-3">
+                <a 
+                  :href="selectedDocument.file_url" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
+                >
+                  <span class="mr-2">👁️</span>
+                  Open PDF
+                </a>
+                <button 
+                  @click="downloadDocument(selectedDocument)"
+                  class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center transition-colors"
+                >
+                  <span class="mr-2">⬇️</span>
+                  Download
+                </button>
+              </div>
             </div>
 
             <!-- Image Preview -->
-            <div v-else-if="['JPG', 'JPEG', 'PNG', 'GIF'].includes(selectedDocument.type) && selectedDocument.file_url" class="bg-gray-100 rounded-lg p-4 flex justify-center">
+            <div v-else-if="['JPG', 'JPEG', 'PNG', 'GIF'].includes(selectedDocument.type) && selectedDocument.file_url" class="bg-gray-100 rounded-lg p-8 text-center">
               <img 
                 :src="selectedDocument.file_url" 
                 :alt="selectedDocument.name"
-                class="max-w-full max-h-[600px] object-contain rounded"
+                class="max-w-full max-h-[400px] object-contain rounded mx-auto mb-4"
               />
+              <div class="flex justify-center space-x-3">
+                <a 
+                  :href="selectedDocument.file_url" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
+                >
+                  <span class="mr-2">👁️</span>
+                  View Full Size
+                </a>
+                <button 
+                  @click="downloadDocument(selectedDocument)"
+                  class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center transition-colors"
+                >
+                  <span class="mr-2">⬇️</span>
+                  Download
+                </button>
+              </div>
             </div>
 
             <!-- Text Preview -->
@@ -536,6 +1044,41 @@
   </div>
 </template>
 
+<style scoped>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>
+
 <script>
 export default {
   name: 'Dashboard',
@@ -547,6 +1090,12 @@ export default {
       userEmail: '',
       showUploadModal: false,
       showViewModal: false,
+      showExportModal: false,
+      showReportModal: false,
+      showScanModal: false,
+      isExporting: false,
+      isGeneratingReport: false,
+      isScanning: false,
       selectedDocument: null,
       isDragging: false,
       isUploading: false,
@@ -555,6 +1104,15 @@ export default {
       uploadError: '',
       uploadSuccess: '',
       isLoadingStats: false,
+      selectedDocuments: [],
+      reportType: 'summary',
+      reportFormat: 'pdf',
+      scanFile: null,
+      scanSettings: {
+        quality: 'high',
+        colorMode: 'color',
+        format: 'pdf'
+      },
       uploadForm: {
         file: null,
         name: '',
@@ -664,6 +1222,16 @@ export default {
       };
       return statusClasses[status] || 'bg-gray-100 text-gray-800';
     },
+    getStatusColor(statusName) {
+      const colors = {
+        'Approved': '#10b981',      // green-500
+        'Pending': '#f59e0b',        // yellow-500
+        'Pending Review': '#f59e0b', // yellow-500
+        'In Review': '#3b82f6',      // blue-500
+        'Rejected': '#ef4444'        // red-500
+      };
+      return colors[statusName] || '#6b7280'; // gray-500 as default
+    },
     async viewDocument(doc) {
       this.selectedDocument = doc;
       this.showViewModal = true;
@@ -738,6 +1306,590 @@ export default {
     handleQuickAction(actionName) {
       if (actionName === 'Upload Document') {
         this.showUploadModal = true;
+      } else if (actionName === 'Export Data') {
+        this.openExportModal();
+      } else if (actionName === 'Create Report') {
+        this.openReportModal();
+      } else if (actionName === 'Scan Document') {
+        this.openScanModal();
+      }
+    },
+    openExportModal() {
+      if (this.documents.length === 0) {
+        alert('No documents to export');
+        return;
+      }
+      this.selectedDocuments = [];
+      this.showExportModal = true;
+    },
+    closeExportModal() {
+      this.showExportModal = false;
+      this.selectedDocuments = [];
+    },
+    openReportModal() {
+      if (this.documents.length === 0) {
+        alert('No documents available to generate report');
+        return;
+      }
+      this.reportType = 'summary';
+      this.reportFormat = 'pdf';
+      this.showReportModal = true;
+    },
+    closeReportModal() {
+      this.showReportModal = false;
+    },
+    openScanModal() {
+      this.scanFile = null;
+      this.scanSettings = {
+        quality: 'high',
+        colorMode: 'color',
+        format: 'pdf'
+      };
+      this.showScanModal = true;
+    },
+    closeScanModal() {
+      this.showScanModal = false;
+      this.scanFile = null;
+    },
+    handleScanFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        // Check if it's an image file
+        if (!file.type.startsWith('image/')) {
+          alert('Please select an image file (JPG, PNG, etc.)');
+          return;
+        }
+        
+        // Check file size (20MB limit for scans)
+        if (file.size > 20 * 1024 * 1024) {
+          alert('File size must be less than 20MB');
+          return;
+        }
+        
+        this.scanFile = file;
+      }
+    },
+    removeScanFile() {
+      this.scanFile = null;
+      if (this.$refs.scanFileInput) {
+        this.$refs.scanFileInput.value = '';
+      }
+    },
+    async processScan() {
+      if (!this.scanFile) {
+        alert('Please select an image to scan');
+        return;
+      }
+
+      this.isScanning = true;
+
+      try {
+        // Simulate scanning/processing delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Create FormData for upload
+        const formData = new FormData();
+        formData.append('file', this.scanFile);
+        
+        // Generate document name based on scan settings
+        const timestamp = new Date().toISOString().split('T')[0];
+        const docName = `Scanned_Document_${timestamp}`;
+        
+        formData.append('name', docName);
+        formData.append('description', `Scanned document - ${this.scanSettings.quality} quality, ${this.scanSettings.colorMode} mode`);
+        formData.append('category', 'Scanned Documents');
+        formData.append('status', 'Pending');
+
+        const token = localStorage.getItem('authToken');
+        
+        if (!token) {
+          alert('Please login to scan documents');
+          this.isScanning = false;
+          return;
+        }
+
+        const response = await fetch('http://localhost:8000/api/documents/', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Reload documents and statistics
+          await this.loadDocuments();
+          await this.loadStatistics();
+
+          setTimeout(() => {
+            this.isScanning = false;
+            this.closeScanModal();
+            alert('Document scanned and uploaded successfully!');
+          }, 500);
+        } else {
+          this.isScanning = false;
+          alert(data.error || 'Failed to process scan. Please try again.');
+        }
+      } catch (error) {
+        console.error('Scan error:', error);
+        this.isScanning = false;
+        alert('Failed to process scan. Please try again.');
+      }
+    },
+    async generateReport() {
+      this.isGeneratingReport = true;
+
+      try {
+        // Simulate report generation delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        if (this.reportFormat === 'pdf') {
+          this.generatePDFReport();
+        } else if (this.reportFormat === 'html') {
+          this.generateHTMLReport();
+        } else if (this.reportFormat === 'csv') {
+          this.generateCSVReport();
+        }
+
+        setTimeout(() => {
+          this.isGeneratingReport = false;
+          // Don't close the modal - let user generate multiple reports
+          alert(`${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)} report generated successfully!`);
+        }, 500);
+      } catch (error) {
+        console.error('Report generation error:', error);
+        this.isGeneratingReport = false;
+        alert('Failed to generate report. Please try again.');
+      }
+    },
+    generatePDFReport() {
+      // Generate HTML content for the report
+      const reportContent = this.getReportContent();
+      
+      // Create a printable HTML page
+      const printWindow = window.open('', '_blank');
+      
+      if (!printWindow) {
+        alert('Please allow popups for this site to view the report');
+        return;
+      }
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)} Report - DocTrack</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 40px;
+              color: #333;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              border-bottom: 3px solid #4F46E5;
+              padding-bottom: 20px;
+            }
+            .header h1 {
+              color: #4F46E5;
+              margin: 0;
+            }
+            .header p {
+              color: #666;
+              margin: 5px 0;
+            }
+            .stats-grid {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 20px;
+              margin: 30px 0;
+            }
+            .stat-card {
+              border: 2px solid #e5e7eb;
+              border-radius: 8px;
+              padding: 20px;
+              text-align: center;
+            }
+            .stat-card h3 {
+              margin: 0;
+              font-size: 14px;
+              color: #666;
+            }
+            .stat-card p {
+              margin: 10px 0 0 0;
+              font-size: 32px;
+              font-weight: bold;
+              color: #4F46E5;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 12px;
+              text-align: left;
+            }
+            th {
+              background-color: #4F46E5;
+              color: white;
+            }
+            tr:nth-child(even) {
+              background-color: #f9fafb;
+            }
+            .status-badge {
+              padding: 4px 12px;
+              border-radius: 12px;
+              font-size: 12px;
+              font-weight: bold;
+            }
+            .status-approved { background-color: #d1fae5; color: #065f46; }
+            .status-pending { background-color: #fef3c7; color: #92400e; }
+            .status-rejected { background-color: #fee2e2; color: #991b1b; }
+            .status-review { background-color: #dbeafe; color: #1e40af; }
+            .status-in { background-color: #dbeafe; color: #1e40af; }
+            .footer {
+              margin-top: 40px;
+              text-align: center;
+              color: #666;
+              font-size: 12px;
+              border-top: 1px solid #ddd;
+              padding-top: 20px;
+            }
+            .button-container {
+              text-align: center;
+              margin-top: 30px;
+              padding: 20px;
+              background-color: #f9fafb;
+              border-radius: 12px;
+              border: 2px solid #e5e7eb;
+            }
+            .btn {
+              padding: 14px 28px;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 16px;
+              font-weight: 600;
+              transition: all 0.3s ease;
+              margin: 0 8px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .btn:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            }
+            .btn:active {
+              transform: translateY(0);
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .btn-primary {
+              background-color: #4F46E5;
+              color: white;
+            }
+            .btn-primary:hover {
+              background-color: #4338CA;
+            }
+            .btn-secondary {
+              background-color: #6b7280;
+              color: white;
+            }
+            .btn-secondary:hover {
+              background-color: #4b5563;
+            }
+            @media print {
+              body { margin: 20px; }
+              .no-print { display: none !important; }
+            }
+          </style>
+        </head>
+        <body>
+          ${reportContent}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    },
+    generateHTMLReport() {
+      const reportContent = this.getReportContent();
+      const blob = new Blob([`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)} Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+            th { background-color: #4F46E5; color: white; }
+          </style>
+        </head>
+        <body>
+          ${reportContent}
+        </body>
+        </html>
+      `], { type: 'text/html' });
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.reportType}_report_${new Date().toISOString().split('T')[0]}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    generateCSVReport() {
+      const headers = ['Document Name', 'Type', 'Size', 'Owner', 'Status', 'Category', 'Last Modified'];
+      const rows = this.documents.map(doc => [
+        doc.name,
+        doc.type,
+        doc.size,
+        doc.owner.name,
+        doc.status,
+        doc.category || 'Uncategorized',
+        doc.lastModified
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.reportType}_report_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    getReportContent() {
+      const date = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+
+      let content = `
+        <div class="header">
+          <h1>📊 ${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)} Report</h1>
+          <p><strong>DocTrack Document Management System</strong></p>
+          <p>Generated on: ${date}</p>
+          <p>Generated by: ${this.userName} (${this.userEmail})</p>
+        </div>
+      `;
+
+      if (this.reportType === 'summary') {
+        content += `
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>Total Documents</h3>
+              <p>${this.stats[0].value}</p>
+            </div>
+            <div class="stat-card">
+              <h3>Pending Review</h3>
+              <p>${this.stats[1].value}</p>
+            </div>
+            <div class="stat-card">
+              <h3>Approved</h3>
+              <p>${this.stats[2].value}</p>
+            </div>
+            <div class="stat-card">
+              <h3>Rejected</h3>
+              <p>${this.stats[3].value}</p>
+            </div>
+          </div>
+          
+          <h2>Document Status Distribution</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Count</th>
+                <th>Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${this.documentStatus.map(status => `
+                <tr>
+                  <td>${status.name}</td>
+                  <td>${status.count}</td>
+                  <td>${status.percentage}%</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      if (this.reportType === 'summary' || this.reportType === 'detailed') {
+        content += `
+          <h2 style="margin-top: 30px;">Document List</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Document Name</th>
+                <th>Type</th>
+                <th>Size</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Category</th>
+                <th>Last Modified</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${this.documents.map(doc => `
+                <tr>
+                  <td>${doc.name}</td>
+                  <td>${doc.type}</td>
+                  <td>${doc.size}</td>
+                  <td>${doc.owner.name}</td>
+                  <td>
+                    <span class="status-badge status-${doc.status.toLowerCase().replace(' ', '-')}">
+                      ${doc.status}
+                    </span>
+                  </td>
+                  <td>${doc.category || 'Uncategorized'}</td>
+                  <td>${doc.lastModified}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      if (this.reportType === 'status') {
+        const groupedByStatus = {};
+        this.documents.forEach(doc => {
+          if (!groupedByStatus[doc.status]) {
+            groupedByStatus[doc.status] = [];
+          }
+          groupedByStatus[doc.status].push(doc);
+        });
+
+        content += '<h2>Documents by Status</h2>';
+        Object.keys(groupedByStatus).forEach(status => {
+          content += `
+            <h3 style="margin-top: 20px; color: #4F46E5;">${status} (${groupedByStatus[status].length})</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Document Name</th>
+                  <th>Type</th>
+                  <th>Owner</th>
+                  <th>Category</th>
+                  <th>Last Modified</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${groupedByStatus[status].map(doc => `
+                  <tr>
+                    <td>${doc.name}</td>
+                    <td>${doc.type}</td>
+                    <td>${doc.owner.name}</td>
+                    <td>${doc.category || 'Uncategorized'}</td>
+                    <td>${doc.lastModified}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        });
+      }
+
+      content += `
+        <div class="footer">
+          <p>This report was automatically generated by DocTrack Document Management System</p>
+          <p>&copy; ${new Date().getFullYear()} DocTrack. All rights reserved.</p>
+        </div>
+      `;
+
+      return content;
+    },
+    toggleDocumentSelection(docId) {
+      const index = this.selectedDocuments.indexOf(docId);
+      if (index > -1) {
+        this.selectedDocuments.splice(index, 1);
+      } else {
+        this.selectedDocuments.push(docId);
+      }
+    },
+    toggleSelectAll() {
+      if (this.selectedDocuments.length === this.documents.length) {
+        this.selectedDocuments = [];
+      } else {
+        this.selectedDocuments = this.documents.map(doc => doc.id);
+      }
+    },
+    exportToCSV() {
+      // Start exporting animation
+      this.isExporting = true;
+
+      try {
+        // Get selected documents
+        const docsToExport = this.selectedDocuments.length > 0
+          ? this.documents.filter(doc => this.selectedDocuments.includes(doc.id))
+          : this.documents;
+
+        if (docsToExport.length === 0) {
+          alert('Please select at least one document to export');
+          this.isExporting = false;
+          return;
+        }
+
+        // Prepare CSV headers
+        const headers = ['Document Name', 'Type', 'Size', 'Owner', 'Status', 'Category', 'Last Modified'];
+        
+        // Prepare CSV rows
+        const rows = docsToExport.map(doc => [
+          doc.name,
+          doc.type,
+          doc.size,
+          doc.owner.name,
+          doc.status,
+          doc.category || 'Uncategorized',
+          doc.lastModified
+        ]);
+
+        // Combine headers and rows
+        const csvContent = [
+          headers.join(','),
+          ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+        ].join('\n');
+
+        // Create blob and download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        // Generate filename with current date
+        const date = new Date().toISOString().split('T')[0];
+        const filename = `documents_export_${date}.csv`;
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Small delay to show the animation before closing
+        setTimeout(() => {
+          // Stop exporting animation
+          this.isExporting = false;
+          
+          // Close modal and show success
+          this.closeExportModal();
+          alert(`Successfully exported ${docsToExport.length} documents to ${filename}`);
+        }, 500);
+      } catch (error) {
+        console.error('Export error:', error);
+        this.isExporting = false;
+        alert('Failed to export data. Please try again.');
       }
     },
     handleMenuClick(menuName) {

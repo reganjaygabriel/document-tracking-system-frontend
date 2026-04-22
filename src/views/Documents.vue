@@ -532,21 +532,55 @@
             </div>
 
             <!-- PDF Preview -->
-            <div v-else-if="selectedDocument.type === 'PDF' && selectedDocument.file_url" class="bg-gray-100 rounded-lg p-4">
-              <iframe 
-                :src="selectedDocument.file_url" 
-                class="w-full h-[600px] border-0 rounded"
-                title="PDF Preview"
-              ></iframe>
+            <div v-else-if="selectedDocument.type === 'PDF' && selectedDocument.file_url" class="bg-gray-100 rounded-lg p-8 text-center">
+              <span class="text-6xl mb-4 block">📕</span>
+              <p class="text-lg font-semibold text-gray-900 mb-2">PDF Document</p>
+              <p class="text-sm text-gray-600 mb-6">{{ selectedDocument.name }}</p>
+              <div class="flex justify-center space-x-3">
+                <a 
+                  :href="selectedDocument.file_url" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
+                >
+                  <span class="mr-2">👁️</span>
+                  Open PDF
+                </a>
+                <button 
+                  @click="downloadDocument(selectedDocument)"
+                  class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center transition-colors"
+                >
+                  <span class="mr-2">⬇️</span>
+                  Download
+                </button>
+              </div>
             </div>
 
             <!-- Image Preview -->
-            <div v-else-if="['JPG', 'JPEG', 'PNG', 'GIF'].includes(selectedDocument.type) && selectedDocument.file_url" class="bg-gray-100 rounded-lg p-4 flex justify-center">
+            <div v-else-if="['JPG', 'JPEG', 'PNG', 'GIF'].includes(selectedDocument.type) && selectedDocument.file_url" class="bg-gray-100 rounded-lg p-8 text-center">
               <img 
                 :src="selectedDocument.file_url" 
                 :alt="selectedDocument.name"
-                class="max-w-full max-h-[600px] object-contain rounded"
+                class="max-w-full max-h-[400px] object-contain rounded mx-auto mb-4"
               />
+              <div class="flex justify-center space-x-3">
+                <a 
+                  :href="selectedDocument.file_url" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
+                >
+                  <span class="mr-2">👁️</span>
+                  View Full Size
+                </a>
+                <button 
+                  @click="downloadDocument(selectedDocument)"
+                  class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center transition-colors"
+                >
+                  <span class="mr-2">⬇️</span>
+                  Download
+                </button>
+              </div>
             </div>
 
             <!-- Text Preview -->
