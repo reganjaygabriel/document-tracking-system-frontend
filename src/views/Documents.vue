@@ -117,35 +117,52 @@
               </select>
             </div>
 
-            <button 
-              @click="showUploadModal = true"
-              class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium flex items-center"
-            >
-              <span class="mr-2">⬆️</span>
-              Upload Document
-            </button>
+            <div class="flex items-center space-x-3">
+              <button 
+                @click="refreshDocuments"
+                :disabled="isRefreshing"
+                class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh documents"
+              >
+                <span :class="{ 'animate-spin': isRefreshing }" class="mr-2">🔄</span>
+                {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
+              </button>
+              <button 
+                @click="showUploadModal = true"
+                class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium flex items-center"
+              >
+                <span class="mr-2">⬆️</span>
+                Upload Document
+              </button>
+            </div>
           </div>
 
-          <!-- View Toggle -->
-          <div class="flex items-center space-x-2">
-            <button 
-              @click="viewMode = 'grid'"
-              :class="[
-                'px-4 py-2 rounded-lg font-medium transition-colors',
-                viewMode === 'grid' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              ]"
-            >
-              Grid View
-            </button>
-            <button 
-              @click="viewMode = 'list'"
-              :class="[
-                'px-4 py-2 rounded-lg font-medium transition-colors',
-                viewMode === 'list' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              ]"
-            >
-              List View
-            </button>
+          <!-- View Toggle and Auto-Refresh Status -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <button 
+                @click="viewMode = 'grid'"
+                :class="[
+                  'px-4 py-2 rounded-lg font-medium transition-colors',
+                  viewMode === 'grid' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                Grid View
+              </button>
+              <button 
+                @click="viewMode = 'list'"
+                :class="[
+                  'px-4 py-2 rounded-lg font-medium transition-colors',
+                  viewMode === 'list' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ]"
+              >
+                List View
+              </button>
+            </div>
+            <div class="flex items-center space-x-2 text-sm text-gray-600">
+              <span class="animate-pulse">🔄</span>
+              <span>Auto-refresh every 30s</span>
+            </div>
           </div>
         </div>
 
@@ -733,6 +750,7 @@ export default {
       filterCategory: 'all',
       viewMode: 'grid',
       isLoading: false,
+      isRefreshing: false,
       isLoadingPreview: false,
       isSaving: false,
       filePreviewContent: '',
@@ -746,6 +764,7 @@ export default {
       uploadSuccess: '',
       editError: '',
       editSuccess: '',
+      refreshInterval: null,
       uploadForm: {
         file: null,
         name: '',
@@ -795,8 +814,93 @@ export default {
     this.userName = localStorage.getItem('userName') || 'User';
     this.userEmail = localStorage.getItem('userEmail') || 'user@example.com';
     this.loadDocuments();
+    
+    // Start auto-refresh every 30 seconds
+    this.startAutoRefresh();
+  },
+  beforeUnmount() {
+    // Clean up interval when component is destroyed
+    this.stopAutoRefresh();
   },
   methods: {
+    startAutoRefresh() {
+      // Refresh documents every 30 seconds
+      this.refreshInterval = setInterval(() => {
+        this.refreshDocuments(true); // true = silent refresh (no loading spinner)
+      }, 30000);
+    },
+    stopAutoRefresh() {
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval);
+        this.refreshInterval = null;
+      }
+    },
+    async refreshDocuments(silent = false) {
+      if (!silent) {
+        this.isRefreshing = true;
+      }
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        
+        if (!token) {
+          console.log('No auth token found');
+          return;
+        }
+
+        const response = await fetch('http://localhost:8000/api/documents/', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Transform backend data to frontend format
+          if (data.documents && Array.isArray(data.documents)) {
+            const oldDocuments = this.documents;
+            this.documents = data.documents.map(doc => ({
+              id: doc.id,
+              document_id: doc.document_id,
+              name: doc.name,
+              type: doc.file_type,
+              size: this.formatFileSize(doc.file_size),
+              owner: {
+                name: doc.owner_name || 'Unknown',
+                initials: this.getInitials(doc.owner_name || 'U')
+              },
+              status: doc.status,
+              lastModified: this.formatDate(doc.updated_at),
+              icon: this.getFileIcon(doc.original_filename),
+              category: doc.category,
+              description: doc.description,
+              file_url: doc.file_url
+            }));
+            
+            // Check if any status changed
+            if (!silent && oldDocuments.length > 0) {
+              const statusChanges = this.documents.filter(newDoc => {
+                const oldDoc = oldDocuments.find(d => d.id === newDoc.id);
+                return oldDoc && oldDoc.status !== newDoc.status;
+              });
+              
+              if (statusChanges.length > 0) {
+                console.log(`✅ ${statusChanges.length} document(s) status updated`);
+              }
+            }
+            
+            console.log('Documents refreshed:', this.documents.length);
+          }
+        }
+      } catch (error) {
+        console.error('Error refreshing documents:', error);
+      } finally {
+        if (!silent) {
+          this.isRefreshing = false;
+        }
+      }
+    },
     async loadDocuments() {
       this.isLoading = true;
       try {

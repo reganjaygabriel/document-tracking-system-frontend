@@ -1,15 +1,15 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-100 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full">
       <!-- Logo and Header -->
       <div class="text-center mb-8">
         <div class="flex justify-center mb-4">
-          <div class="w-16 h-16 bg-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-            <span class="text-3xl text-white">📄</span>
+          <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <span class="text-3xl text-white">🔐</span>
           </div>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900">Welcome Back</h2>
-        <p class="mt-2 text-sm text-gray-600">Sign in to your DocTrack account</p>
+        <h2 class="text-3xl font-bold text-gray-900">Admin Portal</h2>
+        <p class="mt-2 text-sm text-gray-600">Sign in to access the admin dashboard</p>
       </div>
 
       <!-- Login Form -->
@@ -27,8 +27,8 @@
                 v-model="formData.email"
                 type="email"
                 required
-                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                placeholder="you@example.com"
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                placeholder="admin@example.com"
               />
             </div>
           </div>
@@ -45,7 +45,7 @@
                 v-model="formData.password"
                 :type="showPassword ? 'text' : 'password'"
                 required
-                class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                class="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 placeholder="Enter your password"
               />
               <button
@@ -65,13 +65,13 @@
                 id="remember-me"
                 v-model="formData.rememberMe"
                 type="checkbox"
-                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
               />
               <label for="remember-me" class="ml-2 block text-sm text-gray-700">
                 Remember me
               </label>
             </div>
-            <a href="#" class="text-sm font-medium text-primary-600 hover:text-primary-500">
+            <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
               Forgot password?
             </a>
           </div>
@@ -85,9 +85,9 @@
           <button
             type="submit"
             :disabled="isLoading"
-            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="!isLoading">Sign In</span>
+            <span v-if="!isLoading">Sign In as Admin</span>
             <span v-else class="flex items-center">
               <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -131,14 +131,14 @@
         <!-- Sign Up Link -->
         <div class="mt-6 text-center space-y-2">
           <p class="text-sm text-gray-600">
-            Don't have an account?
-            <router-link to="/signup" class="font-medium text-primary-600 hover:text-primary-500">
-              Sign up for free
+            Don't have an admin account?
+            <router-link to="/admin/signup" class="font-medium text-indigo-600 hover:text-indigo-500">
+              Register here
             </router-link>
           </p>
-          <p class="text-sm text-gray-600">
-            <router-link to="/admin/login" class="font-medium text-indigo-600 hover:text-indigo-500">
-              🔐 Admin Login
+          <p class="text-sm text-gray-500">
+            <router-link to="/login" class="hover:text-gray-700">
+              ← Back to User Login
             </router-link>
           </p>
         </div>
@@ -146,7 +146,7 @@
 
       <!-- Footer -->
       <p class="mt-8 text-center text-xs text-gray-500">
-        © 2026 DocTrack. All rights reserved.
+        © 2026 DocTrack Admin. All rights reserved.
       </p>
     </div>
   </div>
@@ -154,7 +154,7 @@
 
 <script>
 export default {
-  name: 'Login',
+  name: 'AdminLogin',
   data() {
     return {
       formData: {
@@ -190,19 +190,20 @@ export default {
         const data = await response.json();
 
         if (response.ok && data.success) {
-          // Store real auth token from backend
-          localStorage.setItem('authToken', data.token);
-          localStorage.setItem('userEmail', data.user.email);
-          localStorage.setItem('userName', data.user.full_name || data.user.username);
-          localStorage.setItem('userRole', data.user.role || 'user');
+          // Check if user is admin
+          if (data.user && data.user.role === 'admin') {
+            // Store admin credentials
+            localStorage.setItem('authToken', data.token);
+            localStorage.setItem('userEmail', data.user.email);
+            localStorage.setItem('userName', data.user.full_name || data.user.username);
+            localStorage.setItem('userRole', 'admin');
 
-          console.log('✅ Login successful!');
-          
-          // Redirect based on user role
-          if (data.user.role === 'admin') {
+            console.log('✅ Admin login successful!');
+
+            // Redirect to admin dashboard
             this.$router.push('/admin/dashboard');
           } else {
-            this.$router.push('/dashboard');
+            this.errorMessage = 'Access denied. Admin privileges required.';
           }
         } else {
           this.errorMessage = data.error || 'Invalid email or password';

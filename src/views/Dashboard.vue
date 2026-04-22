@@ -1120,6 +1120,7 @@ export default {
         category: '',
         status: 'Pending'
       },
+      refreshInterval: null,
       menuItems: [
         { name: 'Dashboard', icon: '📊', href: '#', active: true },
         { name: 'Documents', icon: '📄', href: '#', active: false },
@@ -1211,8 +1212,28 @@ export default {
     // Load documents and statistics from backend
     this.loadDocuments();
     this.loadStatistics();
+    
+    // Start auto-refresh every 30 seconds
+    this.startAutoRefresh();
+  },
+  beforeUnmount() {
+    // Clean up interval when component is destroyed
+    this.stopAutoRefresh();
   },
   methods: {
+    startAutoRefresh() {
+      // Refresh documents and stats every 30 seconds
+      this.refreshInterval = setInterval(() => {
+        this.loadDocuments();
+        this.loadStatistics();
+      }, 30000);
+    },
+    stopAutoRefresh() {
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval);
+        this.refreshInterval = null;
+      }
+    },
     getStatusClass(status) {
       const statusClasses = {
         'Approved': 'bg-green-100 text-green-800',
