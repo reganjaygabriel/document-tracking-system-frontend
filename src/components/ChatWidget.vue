@@ -148,10 +148,10 @@
           <button 
             @click="sendMessage"
             :disabled="!newMessage.trim() || isSending"
-            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors h-[72px]"
+            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors h-[72px] font-medium"
           >
-            <span v-if="!isSending" class="text-xl">📤</span>
-            <span v-else class="text-sm">...</span>
+            <span v-if="!isSending">Send</span>
+            <span v-else>Sending...</span>
           </button>
         </div>
       </div>

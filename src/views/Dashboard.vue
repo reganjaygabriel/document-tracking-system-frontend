@@ -49,21 +49,24 @@
               <span class="text-2xl">🔔</span>
               <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
+            <router-link to="/profile" class="flex items-center space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+              <div v-if="profilePictureUrl" class="w-10 h-10 rounded-full overflow-hidden">
+                <img :src="profilePictureUrl" alt="Profile" class="w-full h-full object-cover">
+              </div>
+              <div v-else class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
                 {{ userInitials }}
               </div>
               <div>
                 <p class="text-sm font-medium text-gray-700">{{ userName }}</p>
                 <p class="text-xs text-gray-500">{{ userEmail }}</p>
               </div>
-              <button 
-                @click="handleLogout"
-                class="ml-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
-            </div>
+            </router-link>
+            <button 
+              @click="handleLogout"
+              class="ml-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>
@@ -1082,6 +1085,7 @@ export default {
       filterStatus: 'all',
       userName: '',
       userEmail: '',
+      profilePictureUrl: null,
       showUploadModal: false,
       showViewModal: false,
       showExportModal: false,
@@ -1203,16 +1207,23 @@ export default {
     this.userName = localStorage.getItem('userName') || 'User';
     this.userEmail = localStorage.getItem('userEmail') || 'user@example.com';
     
+    // Load profile picture
+    this.loadProfile();
+    
     // Load documents and statistics from backend
     this.loadDocuments();
     this.loadStatistics();
     
     // Start auto-refresh every 30 seconds
     this.startAutoRefresh();
+    
+    // Listen for profile updates
+    window.addEventListener('profileUpdated', this.loadProfile);
   },
   beforeUnmount() {
     // Clean up interval when component is destroyed
     this.stopAutoRefresh();
+    window.removeEventListener('profileUpdated', this.loadProfile);
   },
   methods: {
     startAutoRefresh() {
@@ -2227,6 +2238,25 @@ export default {
         console.error('Error loading statistics:', error);
       } finally {
         this.isLoadingStats = false;
+      }
+    },
+    async loadProfile() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch('http://localhost:8000/api/auth/me/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            this.profilePictureUrl = data.user.profile_picture_url;
+            this.userName = data.user.full_name;
+            this.userEmail = data.user.email;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
       }
     }
   }
