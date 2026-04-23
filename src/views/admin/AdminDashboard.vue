@@ -16,36 +16,27 @@
           <span class="text-xl mr-3">📊</span>
           <span class="font-medium">Dashboard</span>
         </router-link>
-        <a 
-          href="#"
-          @click.prevent="showUserManagement = true"
+        <router-link 
+          to="/admin/users"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
         >
           <span class="text-xl mr-3">👥</span>
           <span class="font-medium">User Management</span>
-        </a>
-        <a 
-          href="#"
-          @click.prevent="$router.push('/admin/documents')"
+        </router-link>
+        <router-link 
+          to="/admin/documents"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
         >
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">All Documents</span>
-        </a>
-        <a 
-          href="#"
+        </router-link>
+        <router-link 
+          to="/admin/analytics"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
         >
           <span class="text-xl mr-3">📈</span>
           <span class="font-medium">Analytics</span>
-        </a>
-        <a 
-          href="#"
-          class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
-        >
-          <span class="text-xl mr-3">⚙️</span>
-          <span class="font-medium">Settings</span>
-        </a>
+        </router-link>
       </nav>
       
       <!-- Admin Badge -->
@@ -146,7 +137,7 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div class="space-y-3">
               <button 
-                @click="showUserManagement = true"
+                @click="$router.push('/admin/users')"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
                 <span class="text-2xl mr-3">👤</span>
@@ -209,18 +200,6 @@
 
     <!-- User Management Modal (Placeholder) -->
     <div v-if="showUserManagement" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-2xl font-bold text-gray-900">User Management</h2>
-          <button @click="showUserManagement = false" class="text-gray-400 hover:text-gray-600">
-            <span class="text-2xl">✕</span>
-          </button>
-        </div>
-        <div class="text-center py-12">
-          <span class="text-6xl mb-4 block">👥</span>
-          <p class="text-gray-600">User management interface coming in next step...</p>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -232,7 +211,6 @@ export default {
     return {
       userName: '',
       userEmail: '',
-      showUserManagement: false,
       stats: {
         totalUsers: 0,
         activeUsers: 0,

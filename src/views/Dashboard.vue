@@ -24,20 +24,6 @@
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">Documents</span>
         </router-link>
-        <a 
-          href="#"
-          class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
-        >
-          <span class="text-xl mr-3">📈</span>
-          <span class="font-medium">Analytics</span>
-        </a>
-        <a 
-          href="#"
-          class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
-        >
-          <span class="text-xl mr-3">⚙️</span>
-          <span class="font-medium">Settings</span>
-        </a>
       </nav>
     </aside>
 

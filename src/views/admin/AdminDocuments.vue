@@ -15,13 +15,13 @@
           <span class="text-xl mr-3">📊</span>
           <span class="font-medium">Dashboard</span>
         </router-link>
-        <a 
-          href="#"
+        <router-link 
+          to="/admin/users"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
         >
           <span class="text-xl mr-3">👥</span>
           <span class="font-medium">User Management</span>
-        </a>
+        </router-link>
         <router-link 
           to="/admin/documents"
           class="flex items-center px-6 py-3 text-white bg-white bg-opacity-20 border-r-4 border-white transition-colors duration-200"
@@ -29,20 +29,13 @@
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">All Documents</span>
         </router-link>
-        <a 
-          href="#"
+        <router-link 
+          to="/admin/analytics"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
         >
           <span class="text-xl mr-3">📈</span>
           <span class="font-medium">Analytics</span>
-        </a>
-        <a 
-          href="#"
-          class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
-        >
-          <span class="text-xl mr-3">⚙️</span>
-          <span class="font-medium">Settings</span>
-        </a>
+        </router-link>
       </nav>
       
       <!-- Admin Badge -->

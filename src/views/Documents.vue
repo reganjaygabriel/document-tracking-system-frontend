@@ -22,20 +22,6 @@
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">Documents</span>
         </router-link>
-        <router-link 
-          to="/analytics"
-          class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
-        >
-          <span class="text-xl mr-3">📈</span>
-          <span class="font-medium">Analytics</span>
-        </router-link>
-        <router-link 
-          to="/settings"
-          class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
-        >
-          <span class="text-xl mr-3">⚙️</span>
-          <span class="font-medium">Settings</span>
-        </router-link>
       </nav>
     </aside>
 
@@ -688,15 +674,6 @@
               <option value="Other">Other</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select v-model="editForm.status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500">
-              <option value="Pending">Pending</option>
-              <option value="In Review">In Review</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
 
           <!-- Error Message -->
           <div v-if="editError" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
@@ -1060,8 +1037,7 @@ export default {
       this.editForm = {
         name: doc.name,
         description: doc.description || '',
-        category: doc.category || '',
-        status: doc.status
+        category: doc.category || ''
       };
       this.editError = '';
       this.editSuccess = '';
@@ -1094,8 +1070,7 @@ export default {
           body: JSON.stringify({
             name: this.editForm.name,
             description: this.editForm.description,
-            category: this.editForm.category,
-            status: this.editForm.status
+            category: this.editForm.category
           })
         });
 
@@ -1111,8 +1086,7 @@ export default {
               ...this.documents[index],
               name: this.editForm.name,
               description: this.editForm.description,
-              category: this.editForm.category,
-              status: this.editForm.status
+              category: this.editForm.category
             };
           }
 

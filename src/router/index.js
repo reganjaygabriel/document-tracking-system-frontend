@@ -7,6 +7,8 @@ import AdminLogin from '../views/admin/AdminLogin.vue'
 import AdminSignup from '../views/admin/AdminSignup.vue'
 import AdminDashboard from '../views/admin/AdminDashboard.vue'
 import AdminDocuments from '../views/admin/AdminDocuments.vue'
+import AdminUsers from '../views/admin/AdminUsers.vue'
+import AdminAnalytics from '../views/admin/AdminAnalytics.vue'
 
 const routes = [
   // Public routes
@@ -53,9 +55,21 @@ const routes = [
     meta: { requiresAuth: true, role: 'admin' }
   },
   {
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: AdminUsers,
+    meta: { requiresAuth: true, role: 'admin' }
+  },
+  {
     path: '/admin/documents',
     name: 'AdminDocuments',
     component: AdminDocuments,
+    meta: { requiresAuth: true, role: 'admin' }
+  },
+  {
+    path: '/admin/analytics',
+    name: 'AdminAnalytics',
+    component: AdminAnalytics,
     meta: { requiresAuth: true, role: 'admin' }
   },
   
