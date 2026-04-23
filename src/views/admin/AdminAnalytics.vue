@@ -339,16 +339,21 @@
         </div>
       </main>
     </div>
+    
+    <!-- Chat Widget -->
+    <ChatWidget />
   </div>
 </template>
 
 <script>
 import AdminNotifications from '../../components/AdminNotifications.vue'
+import ChatWidget from '../../components/ChatWidget.vue'
 
 export default {
   name: 'AdminAnalytics',
   components: {
-    AdminNotifications
+    AdminNotifications,
+    ChatWidget
   },
   data() {
     return {

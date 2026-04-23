@@ -1027,6 +1027,9 @@
         </div>
       </div>
     </div>
+    
+    <!-- Chat Widget -->
+    <ChatWidget />
   </div>
 </template>
 
@@ -1066,8 +1069,13 @@
 </style>
 
 <script>
+import ChatWidget from '../components/ChatWidget.vue'
+
 export default {
   name: 'Dashboard',
+  components: {
+    ChatWidget
+  },
   data() {
     return {
       searchQuery: '',

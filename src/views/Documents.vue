@@ -712,12 +712,20 @@
         </form>
       </div>
     </div>
+    
+    <!-- Chat Widget -->
+    <ChatWidget />
   </div>
 </template>
 
 <script>
+import ChatWidget from '../components/ChatWidget.vue'
+
 export default {
   name: 'Documents',
+  components: {
+    ChatWidget
+  },
   data() {
     return {
       userName: '',

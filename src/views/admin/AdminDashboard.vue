@@ -321,12 +321,20 @@
     <!-- User Management Modal (Placeholder) -->
     <div v-if="showUserManagement" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     </div>
+    
+    <!-- Chat Widget -->
+    <ChatWidget />
   </div>
 </template>
 
 <script>
+import ChatWidget from '../../components/ChatWidget.vue'
+
 export default {
   name: 'AdminDashboard',
+  components: {
+    ChatWidget
+  },
   data() {
     return {
       userName: '',
@@ -345,7 +353,8 @@ export default {
       isLoadingNotifications: false,
       notificationInterval: null,
       recentActivity: [],
-      isLoadingActivity: false
+      isLoadingActivity: false,
+      showUserManagement: false
     }
   },
   computed: {
