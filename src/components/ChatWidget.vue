@@ -23,16 +23,67 @@
       <!-- Chat Header -->
       <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 flex items-center justify-between">
         <div>
-          <h3 class="font-bold text-lg">{{ isAdmin ? 'Support Chat' : 'Chat with Admin' }}</h3>
-          <p class="text-xs text-indigo-100">{{ isAdmin ? 'Help users with their documents' : 'Get help with your documents' }}</p>
+          <h3 class="font-bold text-lg">{{ chatTitle }}</h3>
+          <p class="text-xs text-indigo-100">{{ chatSubtitle }}</p>
         </div>
         <button @click="showChat = false" class="text-white hover:text-gray-200">
           <span class="text-2xl">✕</span>
         </button>
       </div>
 
+      <!-- User List (for regular users when no conversation selected) -->
+      <div v-if="!isAdmin && !selectedUserId && !showingMessages" class="flex-1 overflow-y-auto bg-gray-50">
+        <div v-if="isLoadingUsers" class="p-8 text-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p class="mt-2 text-sm text-gray-600">Loading users...</p>
+        </div>
+        
+        <div v-else-if="availableUsers.length === 0" class="p-8 text-center text-gray-500">
+          <span class="text-4xl mb-2 block">👥</span>
+          <p>No users available</p>
+        </div>
+        
+        <div v-else class="divide-y divide-gray-200">
+          <button 
+            v-for="user in availableUsers" 
+            :key="user.id"
+            @click="selectUser(user)"
+            type="button"
+            class="w-full p-4 bg-white hover:bg-indigo-50 cursor-pointer transition-all duration-150 text-left border-b border-gray-200 focus:outline-none focus:bg-indigo-100 active:bg-indigo-100"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                  {{ user.full_name.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">{{ user.full_name }}</h4>
+                  <p class="text-xs text-gray-500">{{ user.email }}</p>
+                  <span 
+                    :class="[
+                      'text-xs px-2 py-0.5 rounded-full',
+                      user.role === 'admin' 
+                        ? 'bg-purple-100 text-purple-800' 
+                        : 'bg-blue-100 text-blue-800'
+                    ]"
+                  >
+                    {{ user.role === 'admin' ? 'Admin' : 'User' }}
+                  </span>
+                </div>
+              </div>
+              <span 
+                v-if="user.unread_count > 0"
+                class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+              >
+                {{ user.unread_count }}
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
+
       <!-- Conversations List (if admin and no selected conversation) -->
-      <div v-if="isAdmin && !selectedDocument && !selectedUserId" class="flex-1 overflow-y-auto bg-gray-50">
+      <div v-else-if="isAdmin && !selectedDocument && !selectedUserId" class="flex-1 overflow-y-auto bg-gray-50">
         <div v-if="isLoadingConversations" class="p-8 text-center">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
           <p class="mt-2 text-sm text-gray-600">Loading conversations...</p>
@@ -73,13 +124,13 @@
 
       <!-- Messages Area -->
       <div v-else class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50" ref="messagesContainer">
-        <!-- Back button for admin -->
+        <!-- Back button -->
         <button 
-          v-if="isAdmin && (selectedDocument || selectedUserId)"
-          @click="selectedDocument = null; selectedUserId = null; loadConversations()"
+          v-if="(isAdmin || !isAdmin) && (selectedDocument || selectedUserId)"
+          @click="goBack"
           class="mb-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
         >
-          ← Back to conversations
+          ← Back to {{ isAdmin ? 'conversations' : 'users' }}
         </button>
 
         <div v-if="isLoadingMessages" class="text-center py-8">
@@ -173,16 +224,36 @@ export default {
       showChat: false,
       messages: [],
       conversations: [],
+      availableUsers: [],
       newMessage: '',
       isLoadingMessages: false,
       isLoadingConversations: false,
+      isLoadingUsers: false,
       isSending: false,
       unreadCount: 0,
       currentUserId: null,
       isAdmin: false,
       selectedDocument: null,
       selectedUserId: null,
+      selectedUserName: '',
+      showingMessages: false,
       chatInterval: null
+    }
+  },
+  computed: {
+    chatTitle() {
+      if (this.isAdmin) {
+        return this.selectedUserId ? `Chat with ${this.selectedUserName}` : 'Support Chat';
+      } else {
+        return this.selectedUserId ? `Chat with ${this.selectedUserName}` : 'Messages';
+      }
+    },
+    chatSubtitle() {
+      if (this.isAdmin) {
+        return this.selectedUserId ? 'Support conversation' : 'Help users with their documents';
+      } else {
+        return this.selectedUserId ? 'Send a message' : 'Select a user to chat';
+      }
     }
   },
   mounted() {
@@ -196,8 +267,8 @@ export default {
     if (this.isAdmin) {
       this.loadConversations();
     } else {
-      // For regular users, automatically load their general chat
-      this.loadMessages();
+      // For regular users, load available users to chat with
+      this.loadAvailableUsers();
     }
     
     // Poll for new messages every 10 seconds
@@ -207,8 +278,8 @@ export default {
       } else if (this.isAdmin) {
         this.loadConversations();
       } else {
-        // Keep refreshing user's general chat
-        this.loadMessages(true);
+        // Keep refreshing user list with unread counts
+        this.loadAvailableUsers(true);
       }
     }, 10000);
   },
@@ -239,11 +310,58 @@ export default {
       if (this.showChat) {
         if (this.isAdmin && !this.selectedDocument && !this.selectedUserId) {
           this.loadConversations();
+        } else if (!this.isAdmin && !this.selectedUserId) {
+          this.loadAvailableUsers();
         } else {
-          // Load messages for users or when admin has selected conversation
+          // Load messages for selected conversation
           this.loadMessages();
           this.markMessagesAsRead();
         }
+      }
+    },
+    async loadAvailableUsers(silent = false) {
+      if (!silent) {
+        this.isLoadingUsers = true;
+      }
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch('http://localhost:8000/api/chat/available-users/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            this.availableUsers = data.users;
+            // Calculate total unread count
+            this.unreadCount = this.availableUsers.reduce((sum, user) => sum + (user.unread_count || 0), 0);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading available users:', error);
+      } finally {
+        this.isLoadingUsers = false;
+      }
+    },
+    selectUser(user) {
+      this.selectedUserId = user.id;
+      this.selectedUserName = user.full_name;
+      this.showingMessages = true;
+      this.loadMessages();
+      this.markMessagesAsRead();
+    },
+    goBack() {
+      this.selectedDocument = null;
+      this.selectedUserId = null;
+      this.selectedUserName = '';
+      this.showingMessages = false;
+      this.messages = [];
+      
+      if (this.isAdmin) {
+        this.loadConversations();
+      } else {
+        this.loadAvailableUsers();
       }
     },
     async loadConversations() {

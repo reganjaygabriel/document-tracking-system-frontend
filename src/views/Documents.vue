@@ -36,10 +36,7 @@
           </div>
           
           <div class="flex items-center space-x-4">
-            <button class="relative p-2 text-gray-600 hover:text-gray-800">
-              <span class="text-2xl">🔔</span>
-              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            <UserNotifications />
             <div class="flex items-center space-x-3">
               <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
                 {{ userInitials }}
@@ -720,11 +717,13 @@
 
 <script>
 import ChatWidget from '../components/ChatWidget.vue'
+import UserNotifications from '../components/UserNotifications.vue'
 
 export default {
   name: 'Documents',
   components: {
-    ChatWidget
+    ChatWidget,
+    UserNotifications
   },
   data() {
     return {

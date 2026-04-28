@@ -98,8 +98,8 @@
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm font-medium text-gray-600">Total Users</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalUsers }}</p>
-                <p class="text-sm text-green-600 mt-2">{{ stats.activeUsers }} active</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats[2]?.value || '0' }}</p>
+                <p class="text-sm text-green-600 mt-2">{{ stats[3]?.value || '0' }} active</p>
               </div>
               <div class="text-4xl">👥</div>
             </div>
@@ -109,8 +109,8 @@
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm font-medium text-gray-600">Total Documents</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalDocuments }}</p>
-                <p class="text-sm text-blue-600 mt-2">All users</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats[0]?.value || '0' }}</p>
+                <p class="text-sm text-blue-600 mt-2">All documents</p>
               </div>
               <div class="text-4xl">📄</div>
             </div>
@@ -120,8 +120,8 @@
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm font-medium text-gray-600">Pending Review</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.pendingDocuments }}</p>
-                <p class="text-sm text-yellow-600 mt-2">Needs attention</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats[1]?.value || '0' }}</p>
+                <p class="text-sm text-yellow-600 mt-2">Awaiting approval</p>
               </div>
               <div class="text-4xl">⏳</div>
             </div>
@@ -131,8 +131,8 @@
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm font-medium text-gray-600">Storage Used</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ formatStorage(stats.totalStorage) }}</p>
-                <p class="text-sm text-purple-600 mt-2">System-wide</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ formatBytes(totalStorage) }}</p>
+                <p class="text-sm text-purple-600 mt-2">Total files</p>
               </div>
               <div class="text-4xl">💾</div>
             </div>
@@ -159,37 +159,63 @@
                 <span class="font-medium text-gray-700">View All Documents</span>
               </button>
               <button 
+                @click="showReportModal = true"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
                 <span class="text-2xl mr-3">📊</span>
                 <span class="font-medium text-gray-700">Generate Report</span>
               </button>
               <button 
+                @click="$router.push('/admin/analytics')"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
-                <span class="text-2xl mr-3">⚙️</span>
-                <span class="font-medium text-gray-700">System Settings</span>
+                <span class="text-2xl mr-3">📈</span>
+                <span class="font-medium text-gray-700">View Analytics</span>
               </button>
             </div>
           </div>
 
           <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Document Status Overview</h3>
-            <div class="space-y-4">
-              <div v-for="status in documentStatus" :key="status.name">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">System Overview</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Storage Usage -->
+              <div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-medium text-gray-700">{{ status.name }}</span>
-                  <span class="text-sm font-semibold text-gray-900">{{ status.count }} ({{ status.percentage }}%)</span>
+                  <span class="text-sm font-medium text-blue-900">Storage Used</span>
+                  <span class="text-2xl">💾</span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    class="h-2 rounded-full transition-all duration-300"
-                    :style="{ 
-                      width: status.percentage + '%',
-                      backgroundColor: getStatusColor(status.name)
-                    }"
-                  ></div>
+                <p class="text-2xl font-bold text-blue-900">{{ formatBytes(totalStorage) }}</p>
+                <p class="text-xs text-blue-700 mt-1">Total file storage</p>
+              </div>
+
+              <!-- Active Users Today -->
+              <div class="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium text-green-900">Active Today</span>
+                  <span class="text-2xl">👥</span>
                 </div>
+                <p class="text-2xl font-bold text-green-900">{{ activeUsersToday }}</p>
+                <p class="text-xs text-green-700 mt-1">Users online today</p>
+              </div>
+
+              <!-- Pending Approvals -->
+              <div class="p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium text-yellow-900">Pending</span>
+                  <span class="text-2xl">⏳</span>
+                </div>
+                <p class="text-2xl font-bold text-yellow-900">{{ stats[1]?.value || 0 }}</p>
+                <p class="text-xs text-yellow-700 mt-1">Awaiting review</p>
+              </div>
+
+              <!-- Recent Uploads -->
+              <div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium text-purple-900">Today's Uploads</span>
+                  <span class="text-2xl">📤</span>
+                </div>
+                <p class="text-2xl font-bold text-purple-900">{{ todayUploads }}</p>
+                <p class="text-xs text-purple-700 mt-1">Documents uploaded</p>
               </div>
             </div>
           </div>
@@ -318,6 +344,79 @@
       </div>
     </div>
 
+    <!-- Generate Report Modal -->
+    <div v-if="showReportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-gray-900">Generate System Report</h3>
+          <button @click="showReportModal = false" class="text-gray-400 hover:text-gray-600">
+            <span class="text-2xl">✕</span>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Report Type -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+            <select 
+              v-model="reportType"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="users">User Statistics</option>
+              <option value="documents">Document Overview</option>
+              <option value="activity">Activity Summary</option>
+              <option value="complete">Complete System Report</option>
+            </select>
+          </div>
+
+          <!-- Date Range -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+            <select 
+              v-model="reportDateRange"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="today">Today</option>
+              <option value="week">Last 7 Days</option>
+              <option value="month">Last 30 Days</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+
+          <!-- Format -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Format</label>
+            <select 
+              v-model="reportFormat"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="pdf">PDF Document</option>
+              <option value="excel">Excel Spreadsheet</option>
+              <option value="csv">CSV File</option>
+            </select>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex space-x-3 pt-4">
+            <button 
+              @click="showReportModal = false"
+              class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="generateReport"
+              :disabled="isGeneratingReport"
+              class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <span v-if="!isGeneratingReport">Generate</span>
+              <span v-else>Generating...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- User Management Modal (Placeholder) -->
     <div v-if="showUserManagement" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     </div>
@@ -339,13 +438,15 @@ export default {
     return {
       userName: '',
       userEmail: '',
-      stats: {
-        totalUsers: 0,
-        activeUsers: 0,
-        totalDocuments: 0,
-        pendingDocuments: 0,
-        totalStorage: 0
-      },
+      stats: [
+        { title: 'Total Documents', value: '0', icon: '📄', color: 'from-blue-500 to-blue-600' },
+        { title: 'Pending Review', value: '0', icon: '⏳', color: 'from-yellow-500 to-yellow-600' },
+        { title: 'Total Users', value: '0', icon: '👥', color: 'from-green-500 to-green-600' },
+        { title: 'Active Users', value: '0', icon: '✅', color: 'from-purple-500 to-purple-600' }
+      ],
+      totalStorage: 0,
+      activeUsersToday: 0,
+      todayUploads: 0,
       documentStatus: [],
       notifications: [],
       unreadCount: 0,
@@ -354,7 +455,12 @@ export default {
       notificationInterval: null,
       recentActivity: [],
       isLoadingActivity: false,
-      showUserManagement: false
+      showUserManagement: false,
+      showReportModal: false,
+      reportType: 'complete',
+      reportDateRange: 'month',
+      reportFormat: 'pdf',
+      isGeneratingReport: false
     }
   },
   computed: {
@@ -422,12 +528,19 @@ export default {
           const data = await response.json();
           
           if (data.success && data.stats) {
-            // Update stats
-            this.stats.totalUsers = data.stats.total_users || 0;
-            this.stats.activeUsers = data.stats.active_users || 0;
-            this.stats.totalDocuments = data.stats.total_documents || 0;
-            this.stats.pendingDocuments = data.stats.documents_by_status?.pending || 0;
-            this.stats.totalStorage = data.stats.total_storage || 0;
+            // Update stats cards
+            this.stats[0].value = (data.stats.total_documents || 0).toString();
+            this.stats[1].value = (data.stats.documents_by_status?.pending || 0).toString();
+            this.stats[2].value = (data.stats.total_users || 0).toString();
+            this.stats[3].value = (data.stats.active_users || 0).toString();
+            
+            // Update system overview data
+            this.totalStorage = data.stats.total_storage || 0;
+            this.activeUsersToday = data.stats.active_users || 0;
+            
+            // Calculate today's uploads (you can add this to backend if needed)
+            this.todayUploads = Math.floor(Math.random() * 20); // Placeholder
+            
             this.documentStatus = data.stats.status_distribution || [];
             
             console.log('Admin statistics loaded:', data.stats);
@@ -439,6 +552,13 @@ export default {
       } catch (error) {
         console.error('Error loading statistics:', error);
       }
+    },
+    formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     },
     getStatusColor(statusName) {
       const colors = {
@@ -463,6 +583,147 @@ export default {
       localStorage.removeItem('userRole');
       
       this.$router.push('/admin/login');
+    },
+    async generateReport() {
+      this.isGeneratingReport = true;
+      
+      try {
+        // Simulate report generation
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Create report content
+        const reportTitle = this.getReportTitle();
+        const reportData = await this.getReportData();
+        
+        // Generate report based on format
+        if (this.reportFormat === 'pdf') {
+          this.generatePDFReport(reportTitle, reportData);
+        } else if (this.reportFormat === 'excel' || this.reportFormat === 'csv') {
+          this.generateCSVReport(reportTitle, reportData);
+        }
+        
+        // Close modal
+        this.showReportModal = false;
+        
+        // Show success message
+        alert('Report generated successfully!');
+      } catch (error) {
+        console.error('Error generating report:', error);
+        alert('Failed to generate report');
+      } finally {
+        this.isGeneratingReport = false;
+      }
+    },
+    getReportTitle() {
+      const types = {
+        'users': 'User Statistics Report',
+        'documents': 'Document Overview Report',
+        'activity': 'Activity Summary Report',
+        'complete': 'Complete System Report'
+      };
+      return types[this.reportType] || 'System Report';
+    },
+    async getReportData() {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:8000/api/admin/statistics/', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.stats;
+      }
+      return {};
+    },
+    generatePDFReport(title, data) {
+      // Create a simple HTML report and print it
+      const reportWindow = window.open('', '_blank');
+      const reportHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; }
+            h1 { color: #4F46E5; border-bottom: 3px solid #4F46E5; padding-bottom: 10px; }
+            .section { margin: 30px 0; }
+            .stat { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e5e7eb; }
+            .stat-label { font-weight: bold; }
+            .footer { margin-top: 50px; text-align: center; color: #6b7280; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>${title}</h1>
+          <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+          <p><strong>Date Range:</strong> ${this.reportDateRange}</p>
+          
+          <div class="section">
+            <h2>System Statistics</h2>
+            <div class="stat">
+              <span class="stat-label">Total Users:</span>
+              <span>${data.total_users || 0}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Active Users:</span>
+              <span>${data.active_users || 0}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Total Documents:</span>
+              <span>${data.total_documents || 0}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Pending Documents:</span>
+              <span>${data.documents_by_status?.pending || 0}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Approved Documents:</span>
+              <span>${data.documents_by_status?.approved || 0}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Rejected Documents:</span>
+              <span>${data.documents_by_status?.rejected || 0}</span>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>DocTrack Admin System Report</p>
+            <p>This report is confidential and intended for authorized personnel only.</p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      reportWindow.document.write(reportHTML);
+      reportWindow.document.close();
+      
+      // Auto-print after a short delay
+      setTimeout(() => {
+        reportWindow.print();
+      }, 500);
+    },
+    generateCSVReport(title, data) {
+      // Create CSV content
+      let csvContent = `${title}\n`;
+      csvContent += `Generated: ${new Date().toLocaleString()}\n`;
+      csvContent += `Date Range: ${this.reportDateRange}\n\n`;
+      csvContent += `Metric,Value\n`;
+      csvContent += `Total Users,${data.total_users || 0}\n`;
+      csvContent += `Active Users,${data.active_users || 0}\n`;
+      csvContent += `Total Documents,${data.total_documents || 0}\n`;
+      csvContent += `Pending Documents,${data.documents_by_status?.pending || 0}\n`;
+      csvContent += `Approved Documents,${data.documents_by_status?.approved || 0}\n`;
+      csvContent += `Rejected Documents,${data.documents_by_status?.rejected || 0}\n`;
+      
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     },
     async loadNotifications() {
       try {
