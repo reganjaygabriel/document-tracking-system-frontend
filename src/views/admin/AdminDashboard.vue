@@ -159,6 +159,13 @@
                 <span class="font-medium text-gray-700">View All Documents</span>
               </button>
               <button 
+                @click="openChatWidget"
+                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
+              >
+                <span class="text-2xl mr-3">💬</span>
+                <span class="font-medium text-gray-700">Open Chat</span>
+              </button>
+              <button 
                 @click="showReportModal = true"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
@@ -428,6 +435,7 @@
 
 <script>
 import ChatWidget from '../../components/ChatWidget.vue'
+import eventBus from '../../eventBus.js'
 
 export default {
   name: 'AdminDashboard',
@@ -583,6 +591,10 @@ export default {
       localStorage.removeItem('userRole');
       
       this.$router.push('/admin/login');
+    },
+    openChatWidget() {
+      // Emit event to open chat widget
+      eventBus.$emit('openChatWidget');
     },
     async generateReport() {
       this.isGeneratingReport = true;

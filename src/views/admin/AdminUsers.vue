@@ -257,6 +257,14 @@
                         Edit
                       </button>
                       <button 
+                        @click="chatWithUser(user)"
+                        class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs font-medium transition-colors flex items-center space-x-1"
+                        title="Chat with User"
+                      >
+                        <span>💬</span>
+                        <span>Chat</span>
+                      </button>
+                      <button 
                         v-if="user.id !== currentUserId"
                         @click="deleteUser(user)"
                         class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-xs font-medium transition-colors"
@@ -366,6 +374,7 @@
 <script>
 import AdminNotifications from '../../components/AdminNotifications.vue'
 import ChatWidget from '../../components/ChatWidget.vue'
+import eventBus from '../../eventBus.js'
 
 export default {
   name: 'AdminUsers',
@@ -450,30 +459,44 @@ export default {
         const token = localStorage.getItem('authToken');
         
         if (!token) {
-          console.log('No auth token found');
+          console.error('No auth token found');
+          alert('No authentication token found. Please log in again.');
           return;
         }
 
+        console.log('Fetching users from API...');
         const response = await fetch('http://localhost:8000/api/admin/users/', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
+        console.log('Response status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('API Response:', data);
           
           if (data.success && data.users) {
             this.users = data.users;
             this.filteredUsers = data.users;
             console.log('Loaded users:', this.users.length);
+          } else {
+            console.error('API returned success=false or no users array');
+            alert('Failed to load users: Invalid response format');
           }
         } else if (response.status === 403) {
+          console.error('Access denied - 403');
           alert('Access denied - admin privileges required');
           this.$router.push('/dashboard');
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API Error:', response.status, errorData);
+          alert(`Failed to load users: ${response.status} ${response.statusText}`);
         }
       } catch (error) {
         console.error('Error loading users:', error);
+        alert('Error loading users: ' + error.message);
       } finally {
         this.isLoading = false;
       }
@@ -520,6 +543,13 @@ export default {
     editUser(user) {
       alert('Edit user functionality coming soon!');
       // TODO: Implement edit modal
+    },
+    chatWithUser(user) {
+      // Emit event to open chat with specific user
+      eventBus.$emit('openChatWithUser', {
+        userId: user.id,
+        userName: user.full_name
+      });
     },
     async deleteUser(user) {
       if (!confirm(`Are you sure you want to delete user "${user.full_name}"?`)) {

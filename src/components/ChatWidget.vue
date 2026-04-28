@@ -57,8 +57,21 @@
                   {{ user.full_name.charAt(0).toUpperCase() }}
                 </div>
                 <div>
-                  <h4 class="font-semibold text-gray-900">{{ user.full_name }}</h4>
-                  <p class="text-xs text-gray-500">{{ user.email }}</p>
+                  <h4 
+                    :class="[
+                      user.unread_count > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'
+                    ]"
+                  >
+                    {{ user.full_name }}
+                  </h4>
+                  <p 
+                    :class="[
+                      'text-xs',
+                      user.unread_count > 0 ? 'font-semibold text-gray-600' : 'text-gray-500'
+                    ]"
+                  >
+                    {{ user.email }}
+                  </p>
                   <span 
                     :class="[
                       'text-xs px-2 py-0.5 rounded-full',
@@ -71,12 +84,11 @@
                   </span>
                 </div>
               </div>
+              <!-- Blue dot indicator for unread messages -->
               <span 
                 v-if="user.unread_count > 0"
-                class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
-              >
-                {{ user.unread_count }}
-              </span>
+                class="w-3 h-3 bg-blue-500 rounded-full"
+              ></span>
             </div>
           </button>
         </div>
@@ -104,18 +116,38 @@
           >
             <div class="flex items-start justify-between">
               <div class="flex-1 min-w-0 pr-3">
-                <h4 class="font-semibold text-gray-900 truncate mb-1">{{ conv.document_name }}</h4>
-                <p class="text-sm text-indigo-600 font-medium mb-1">{{ conv.owner_name }}</p>
-                <p class="text-xs text-gray-500 truncate">{{ conv.last_message }}</p>
+                <h4 
+                  :class="[
+                    'truncate mb-1',
+                    conv.unread_count > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'
+                  ]"
+                >
+                  {{ conv.document_name }}
+                </h4>
+                <p 
+                  :class="[
+                    'text-sm mb-1',
+                    conv.unread_count > 0 ? 'font-semibold text-indigo-700' : 'font-medium text-indigo-600'
+                  ]"
+                >
+                  {{ conv.owner_name }}
+                </p>
+                <p 
+                  :class="[
+                    'text-xs truncate',
+                    conv.unread_count > 0 ? 'font-semibold text-gray-700' : 'text-gray-500'
+                  ]"
+                >
+                  {{ conv.last_message }}
+                </p>
               </div>
               <div class="flex flex-col items-end flex-shrink-0">
                 <span class="text-xs text-gray-400 whitespace-nowrap mb-1">{{ formatTime(conv.last_message_time) }}</span>
+                <!-- Blue dot indicator for unread messages -->
                 <span 
                   v-if="conv.unread_count > 0"
-                  class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                >
-                  {{ conv.unread_count }}
-                </span>
+                  class="w-3 h-3 bg-blue-500 rounded-full"
+                ></span>
               </div>
             </div>
           </button>
@@ -211,6 +243,8 @@
 </template>
 
 <script>
+import eventBus from '../eventBus.js'
+
 export default {
   name: 'ChatWidget',
   props: {
@@ -271,6 +305,10 @@ export default {
       this.loadAvailableUsers();
     }
     
+    // Listen for external chat open requests
+    eventBus.$on('openChatWithUser', this.handleOpenChatWithUser);
+    eventBus.$on('openChatWidget', this.handleOpenChatWidget);
+    
     // Poll for new messages every 10 seconds
     this.chatInterval = setInterval(() => {
       if (this.selectedDocument || this.selectedUserId) {
@@ -287,6 +325,9 @@ export default {
     if (this.chatInterval) {
       clearInterval(this.chatInterval);
     }
+    // Remove event listener
+    eventBus.$off('openChatWithUser', this.handleOpenChatWithUser);
+    eventBus.$off('openChatWidget', this.handleOpenChatWidget);
   },
   methods: {
     async getCurrentUserId() {
@@ -350,6 +391,20 @@ export default {
       this.showingMessages = true;
       this.loadMessages();
       this.markMessagesAsRead();
+    },
+    handleOpenChatWithUser(data) {
+      // Open chat widget with specific user
+      this.showChat = true;
+      this.selectedUserId = data.userId;
+      this.selectedUserName = data.userName;
+      this.showingMessages = true;
+      this.selectedDocument = null;
+      this.loadMessages();
+      this.markMessagesAsRead();
+    },
+    handleOpenChatWidget() {
+      // Simply open the chat widget
+      this.showChat = true;
     },
     goBack() {
       this.selectedDocument = null;
