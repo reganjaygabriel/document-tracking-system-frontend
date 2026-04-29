@@ -335,29 +335,34 @@
               msg.sender === currentUserId ? 'justify-end' : 'justify-start'
             ]"
           >
-            <!-- Profile Avatar - Always on the left -->
+            <!-- Profile Avatar - Always on the left, clickable -->
             <div class="flex-shrink-0 order-first">
-              <div 
-                v-if="msg.sender_profile_picture"
-                class="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200"
+              <button
+                @click="viewUserProfile(msg.sender, msg.sender_role)"
+                class="block focus:outline-none"
               >
-                <img 
-                  :src="`http://localhost:8000${msg.sender_profile_picture}`" 
-                  :alt="msg.sender_name"
-                  class="w-full h-full object-cover"
-                />
-              </div>
-              <div 
-                v-else
-                :class="[
-                  'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border-2',
-                  msg.sender_role === 'admin' 
-                    ? 'bg-gradient-to-br from-purple-500 to-purple-700 border-purple-300' 
-                    : 'bg-gradient-to-br from-indigo-500 to-blue-600 border-blue-300'
-                ]"
-              >
-                {{ msg.sender_name.charAt(0).toUpperCase() }}
-              </div>
+                <div 
+                  v-if="msg.sender_profile_picture"
+                  class="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-200 hover:border-indigo-400 transition-all cursor-pointer"
+                >
+                  <img 
+                    :src="`http://localhost:8000${msg.sender_profile_picture}`" 
+                    :alt="msg.sender_name"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+                <div 
+                  v-else
+                  :class="[
+                    'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 hover:scale-110 transition-all cursor-pointer',
+                    msg.sender_role === 'admin' 
+                      ? 'bg-gradient-to-br from-purple-500 to-purple-700 border-purple-300 hover:border-purple-400' 
+                      : 'bg-gradient-to-br from-indigo-500 to-blue-600 border-blue-300 hover:border-blue-400'
+                  ]"
+                >
+                  {{ msg.sender_name.charAt(0).toUpperCase() }}
+                </div>
+              </button>
             </div>
 
             <!-- Message bubble -->
@@ -404,6 +409,107 @@
         </div>
       </div>
     </div>
+
+    <!-- Profile Modal -->
+    <div 
+      v-if="showProfileModal && profileModalUser"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]"
+      @click="closeProfileModal"
+    >
+      <div 
+        class="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md p-6"
+        @click.stop
+      >
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-gray-900">User Profile</h3>
+          <button 
+            @click="closeProfileModal"
+            class="text-gray-400 hover:text-gray-600 text-2xl"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="space-y-4">
+          <!-- Profile Picture -->
+          <div class="flex justify-center">
+            <div 
+              v-if="profileModalUser.profile_picture"
+              class="w-24 h-24 rounded-full overflow-hidden border-4 border-indigo-200"
+            >
+              <img 
+                :src="`http://localhost:8000${profileModalUser.profile_picture}`" 
+                :alt="profileModalUser.full_name"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div 
+              v-else
+              :class="[
+                'w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold border-4',
+                profileModalUser.role === 'admin' 
+                  ? 'bg-gradient-to-br from-purple-500 to-purple-700 border-purple-300' 
+                  : 'bg-gradient-to-br from-indigo-500 to-blue-600 border-blue-300'
+              ]"
+            >
+              {{ profileModalUser.full_name.charAt(0).toUpperCase() }}
+            </div>
+          </div>
+
+          <!-- User Info -->
+          <div class="text-center">
+            <h4 class="text-2xl font-bold text-gray-900">{{ profileModalUser.full_name }}</h4>
+            <span 
+              :class="[
+                'inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium',
+                profileModalUser.role === 'admin' 
+                  ? 'bg-purple-100 text-purple-800' 
+                  : 'bg-blue-100 text-blue-800'
+              ]"
+            >
+              {{ profileModalUser.role === 'admin' ? 'Admin' : 'User' }}
+            </span>
+          </div>
+
+          <!-- Details -->
+          <div class="space-y-3 pt-4 border-t border-gray-200">
+            <div class="flex items-center space-x-3">
+              <span class="text-gray-500 text-sm w-20">Email:</span>
+              <span class="text-gray-900 font-medium">{{ profileModalUser.email }}</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="text-gray-500 text-sm w-20">Status:</span>
+              <span 
+                :class="[
+                  'px-2 py-1 rounded-full text-xs font-medium',
+                  profileModalUser.is_active 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                ]"
+              >
+                {{ profileModalUser.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="text-gray-500 text-sm w-20">Joined:</span>
+              <span class="text-gray-900">{{ new Date(profileModalUser.date_joined).toLocaleDateString() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Close Button -->
+        <div class="mt-6 flex justify-end">
+          <button
+            @click="closeProfileModal"
+            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -439,7 +545,9 @@ export default {
       selectedUserName: '',
       showingMessages: false,
       chatInterval: null,
-      adminView: 'conversations' // 'conversations' or 'users'
+      adminView: 'conversations', // 'conversations' or 'users'
+      showProfileModal: false,
+      profileModalUser: null
     }
   },
   computed: {
@@ -775,6 +883,28 @@ export default {
       if (diffDays < 7) return `${diffDays}d ago`;
       
       return date.toLocaleDateString();
+    },
+    async viewUserProfile(userId, userRole) {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await fetch(`http://localhost:8000/api/users/${userId}/profile/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          this.profileModalUser = data.user;
+          this.showProfileModal = true;
+        } else {
+          console.error('Failed to load user profile');
+        }
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    },
+    closeProfileModal() {
+      this.showProfileModal = false;
+      this.profileModalUser = null;
     }
   }
 }
