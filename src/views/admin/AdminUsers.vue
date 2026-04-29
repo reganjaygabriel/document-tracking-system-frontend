@@ -1,16 +1,30 @@
 <template>
-  <div class="flex h-screen bg-gray-50">
+  <div class="flex flex-col lg:flex-row h-screen bg-gray-50">
+    <!-- Mobile Menu Button -->
+    <button 
+      @click="showMobileMenu = !showMobileMenu"
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-600 text-white rounded-lg shadow-lg"
+    >
+      <span class="text-2xl">{{ showMobileMenu ? '✕' : '☰' }}</span>
+    </button>
+
     <!-- Admin Sidebar -->
-    <aside class="w-64 bg-gradient-to-b from-indigo-600 to-purple-700 shadow-lg">
+    <aside 
+      :class="[
+        'w-64 bg-gradient-to-b from-indigo-600 to-purple-700 shadow-lg transition-transform duration-300 lg:relative fixed inset-y-0 left-0 z-40',
+        showMobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      ]"
+    >
       <div class="p-6">
-        <h1 class="text-2xl font-bold text-white">DocTrack Admin</h1>
-        <p class="text-sm text-indigo-200">Administration Panel</p>
+        <h1 class="text-xl lg:text-2xl font-bold text-white">DocTrack Admin</h1>
+        <p class="text-xs lg:text-sm text-indigo-200">Administration Panel</p>
       </div>
       
       <nav class="mt-6">
         <router-link 
           to="/admin/dashboard"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📊</span>
           <span class="font-medium">Dashboard</span>
@@ -18,6 +32,7 @@
         <router-link 
           to="/admin/users"
           class="flex items-center px-6 py-3 text-white bg-white bg-opacity-20 border-r-4 border-white transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">👥</span>
           <span class="font-medium">User Management</span>
@@ -25,6 +40,7 @@
         <router-link 
           to="/admin/documents"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">All Documents</span>
@@ -32,6 +48,7 @@
         <router-link 
           to="/admin/analytics"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📈</span>
           <span class="font-medium">Analytics</span>
@@ -47,98 +64,112 @@
       </div>
     </aside>
 
+    <!-- Overlay for mobile menu -->
+    <div 
+      v-if="showMobileMenu"
+      @click="showMobileMenu = false"
+      class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+    ></div>
+
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
       <!-- Header -->
-      <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-8 py-4">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">User Management</h2>
-            <p class="text-sm text-gray-600">View and manage all system users</p>
+      <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="flex items-center justify-between px-4 lg:px-8 py-4">
+          <div class="ml-12 lg:ml-0">
+            <h2 class="text-lg lg:text-2xl font-bold text-gray-900">User Management</h2>
+            <p class="text-xs lg:text-sm text-gray-600 hidden sm:block">View and manage all system users</p>
           </div>
           
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 lg:space-x-4">
             <AdminNotifications />
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+            <div class="hidden sm:flex items-center space-x-3">
+              <div class="w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-sm lg:text-base">
                 {{ userInitials }}
               </div>
-              <div>
+              <div class="hidden md:block">
                 <p class="text-sm font-medium text-gray-700">{{ userName }}</p>
                 <p class="text-xs text-indigo-600 font-semibold">Admin</p>
               </div>
               <button 
                 @click="handleLogout"
-                class="ml-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                class="ml-2 px-2 lg:px-3 py-1.5 text-xs lg:text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
               >
                 Logout
               </button>
             </div>
+            <!-- Mobile logout -->
+            <button 
+              @click="handleLogout"
+              class="sm:hidden p-2 text-red-600 hover:text-red-700"
+            >
+              <span class="text-xl">🚪</span>
+            </button>
           </div>
         </div>
       </header>
 
       <!-- Content -->
-      <main class="p-8">
+      <main class="p-4 lg:p-8">
         <!-- Filters and Stats -->
-        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 mb-4 lg:mb-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-6">
             <!-- Total Users -->
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 lg:p-4">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-blue-600">Total Users</p>
-                  <p class="text-2xl font-bold text-blue-900 mt-1">{{ users.length }}</p>
+                  <p class="text-xs lg:text-sm font-medium text-blue-600">Total Users</p>
+                  <p class="text-xl lg:text-2xl font-bold text-blue-900 mt-1">{{ users.length }}</p>
                 </div>
-                <span class="text-3xl">👥</span>
+                <span class="text-2xl lg:text-3xl">👥</span>
               </div>
             </div>
 
             <!-- Active Users -->
-            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 lg:p-4">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-green-600">Active Users</p>
-                  <p class="text-2xl font-bold text-green-900 mt-1">{{ activeUsersCount }}</p>
+                  <p class="text-xs lg:text-sm font-medium text-green-600">Active Users</p>
+                  <p class="text-xl lg:text-2xl font-bold text-green-900 mt-1">{{ activeUsersCount }}</p>
                 </div>
-                <span class="text-3xl">✅</span>
+                <span class="text-2xl lg:text-3xl">✅</span>
               </div>
             </div>
 
             <!-- Admin Users -->
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 lg:p-4">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-purple-600">Admins</p>
-                  <p class="text-2xl font-bold text-purple-900 mt-1">{{ adminUsersCount }}</p>
+                  <p class="text-xs lg:text-sm font-medium text-purple-600">Admins</p>
+                  <p class="text-xl lg:text-2xl font-bold text-purple-900 mt-1">{{ adminUsersCount }}</p>
                 </div>
-                <span class="text-3xl">🔐</span>
+                <span class="text-2xl lg:text-3xl">🔐</span>
               </div>
             </div>
 
             <!-- Regular Users -->
-            <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
+            <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 lg:p-4">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-orange-600">Regular Users</p>
-                  <p class="text-2xl font-bold text-orange-900 mt-1">{{ regularUsersCount }}</p>
+                  <p class="text-xs lg:text-sm font-medium text-orange-600">Regular Users</p>
+                  <p class="text-xl lg:text-2xl font-bold text-orange-900 mt-1">{{ regularUsersCount }}</p>
                 </div>
-                <span class="text-3xl">👤</span>
+                <span class="text-2xl lg:text-3xl">👤</span>
               </div>
             </div>
           </div>
 
           <!-- Search and Filters -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
+          <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 lg:gap-0">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:space-x-4 flex-1">
               <!-- Search -->
-              <div class="relative">
+              <div class="relative flex-1 lg:flex-initial">
                 <input
                   v-model="filters.search"
                   @input="filterUsers"
                   type="text"
                   placeholder="Search users..."
-                  class="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  class="w-full lg:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm lg:text-base"
                 />
                 <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
               </div>
@@ -147,7 +178,7 @@
               <select
                 v-model="filters.role"
                 @change="filterUsers"
-                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm lg:text-base"
               >
                 <option value="">All Roles</option>
                 <option value="user">Regular Users</option>
@@ -158,7 +189,7 @@
               <select
                 v-model="filters.status"
                 @change="filterUsers"
-                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm lg:text-base"
               >
                 <option value="">All Status</option>
                 <option value="active">Active</option>
@@ -168,7 +199,7 @@
 
             <button 
               @click="clearFilters"
-              class="px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium"
+              class="px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium text-sm lg:text-base"
             >
               Clear Filters
             </button>
@@ -177,28 +208,28 @@
 
         <!-- Users Table -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
-          <div v-if="isLoading" class="p-12 text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600">Loading users...</p>
+          <div v-if="isLoading" class="p-8 lg:p-12 text-center">
+            <div class="animate-spin rounded-full h-10 w-10 lg:h-12 lg:w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600 text-sm lg:text-base">Loading users...</p>
           </div>
 
-          <div v-else-if="filteredUsers.length === 0" class="p-12 text-center">
-            <span class="text-6xl mb-4 block">👥</span>
-            <p class="text-gray-600">No users found</p>
+          <div v-else-if="filteredUsers.length === 0" class="p-8 lg:p-12 text-center">
+            <span class="text-5xl lg:text-6xl mb-4 block">👥</span>
+            <p class="text-gray-600 text-sm lg:text-base">No users found</p>
           </div>
 
           <div v-else class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full min-w-[800px]">
               <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">User</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Email</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Organization</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Role</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Documents</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Joined</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Actions</th>
+                  <th class="text-left py-3 px-3 lg:px-4 text-xs lg:text-sm font-semibold text-gray-700">User</th>
+                  <th class="text-left py-3 px-3 lg:px-4 text-xs lg:text-sm font-semibold text-gray-700">Email</th>
+                  <th class="text-left py-3 px-3 lg:px-4 text-xs lg:text-sm font-semibold text-gray-700 hidden md:table-cell">Organization</th>
+                  <th class="text-left py-3 px-3 lg:px-4 text-xs lg:text-sm font-semibold text-gray-700">Role</th>
+                  <th class="text-left py-3 px-3 lg:px-4 text-xs lg:text-sm font-semibold text-gray-700">Status</th>
+                  <th class="text-left py-3 px-3 lg:px-4 text-xs lg:text-sm font-semibold text-gray-700 hidden sm:table-cell">Documents</th>
+                  <th class="text-left py-3 px-3 lg:px-4 text-xs lg:text-sm font-semibold text-gray-700 hidden lg:table-cell">Joined</th>
+                  <th class="text-left py-3 px-3 lg:px-4 text-xs lg:text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -207,67 +238,67 @@
                   :key="user.id"
                   class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                 >
-                  <td class="py-4 px-4">
+                  <td class="py-3 lg:py-4 px-3 lg:px-4">
                     <div class="flex items-center">
-                      <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold mr-3">
+                      <div class="w-8 h-8 lg:w-10 lg:h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold mr-2 lg:mr-3 text-xs lg:text-base">
                         {{ getInitials(user.full_name) }}
                       </div>
                       <div>
-                        <p class="font-medium text-gray-900">{{ user.full_name }}</p>
+                        <p class="font-medium text-gray-900 text-xs lg:text-sm">{{ user.full_name }}</p>
                         <p class="text-xs text-gray-500">ID: {{ user.id }}</p>
                       </div>
                     </div>
                   </td>
-                  <td class="py-4 px-4 text-sm text-gray-700">{{ user.email }}</td>
-                  <td class="py-4 px-4 text-sm text-gray-700">{{ user.organization || 'N/A' }}</td>
-                  <td class="py-4 px-4">
+                  <td class="py-3 lg:py-4 px-3 lg:px-4 text-xs lg:text-sm text-gray-700">{{ user.email }}</td>
+                  <td class="py-3 lg:py-4 px-3 lg:px-4 text-xs lg:text-sm text-gray-700 hidden md:table-cell">{{ user.organization || 'N/A' }}</td>
+                  <td class="py-3 lg:py-4 px-3 lg:px-4">
                     <span 
                       :class="getRoleClass(user.role)"
-                      class="px-3 py-1 rounded-full text-xs font-semibold"
+                      class="px-2 lg:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
                     >
                       {{ user.role === 'admin' ? '🔐 Admin' : '👤 User' }}
                     </span>
                   </td>
-                  <td class="py-4 px-4">
+                  <td class="py-3 lg:py-4 px-3 lg:px-4">
                     <span 
                       :class="getStatusClass(user.is_active)"
-                      class="px-3 py-1 rounded-full text-xs font-semibold"
+                      class="px-2 lg:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
                     >
                       {{ user.is_active ? '✅ Active' : '❌ Inactive' }}
                     </span>
                   </td>
-                  <td class="py-4 px-4 text-sm text-gray-700 text-center">
+                  <td class="py-3 lg:py-4 px-3 lg:px-4 text-xs lg:text-sm text-gray-700 text-center hidden sm:table-cell">
                     {{ user.document_count || 0 }}
                   </td>
-                  <td class="py-4 px-4 text-sm text-gray-600">{{ formatDate(user.date_joined) }}</td>
-                  <td class="py-4 px-4">
-                    <div class="flex space-x-2">
+                  <td class="py-3 lg:py-4 px-3 lg:px-4 text-xs lg:text-sm text-gray-600 hidden lg:table-cell">{{ formatDate(user.date_joined) }}</td>
+                  <td class="py-3 lg:py-4 px-3 lg:px-4">
+                    <div class="flex flex-wrap gap-1 lg:gap-2">
                       <button 
                         @click="viewUser(user)"
-                        class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-medium transition-colors"
+                        class="px-2 lg:px-3 py-1 lg:py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-medium transition-colors whitespace-nowrap"
                         title="View Details"
                       >
                         View
                       </button>
                       <button 
                         @click="editUser(user)"
-                        class="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-xs font-medium transition-colors"
+                        class="px-2 lg:px-3 py-1 lg:py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-xs font-medium transition-colors whitespace-nowrap"
                         title="Edit User"
                       >
                         Edit
                       </button>
                       <button 
                         @click="chatWithUser(user)"
-                        class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs font-medium transition-colors flex items-center space-x-1"
+                        class="px-2 lg:px-3 py-1 lg:py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs font-medium transition-colors flex items-center space-x-1 whitespace-nowrap"
                         title="Chat with User"
                       >
                         <span>💬</span>
-                        <span>Chat</span>
+                        <span class="hidden sm:inline">Chat</span>
                       </button>
                       <button 
                         v-if="user.id !== currentUserId"
                         @click="deleteUser(user)"
-                        class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-xs font-medium transition-colors"
+                        class="px-2 lg:px-3 py-1 lg:py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-xs font-medium transition-colors whitespace-nowrap"
                         title="Delete User"
                       >
                         Delete
@@ -384,6 +415,7 @@ export default {
   },
   data() {
     return {
+      showMobileMenu: false,
       userName: '',
       userEmail: '',
       currentUserId: null,

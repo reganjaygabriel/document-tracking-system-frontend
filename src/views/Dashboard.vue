@@ -1,10 +1,23 @@
 <template>
-  <div class="flex h-screen bg-gray-50">
+  <div class="flex flex-col lg:flex-row h-screen bg-gray-50">
+    <!-- Mobile Menu Button -->
+    <button 
+      @click="showMobileMenu = !showMobileMenu"
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-primary-600 text-white rounded-lg shadow-lg"
+    >
+      <span class="text-2xl">{{ showMobileMenu ? '✕' : '☰' }}</span>
+    </button>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-lg">
+    <aside 
+      :class="[
+        'w-64 bg-white shadow-lg transition-transform duration-300 lg:relative fixed inset-y-0 left-0 z-40',
+        showMobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      ]"
+    >
       <div class="p-6">
-        <h1 class="text-2xl font-bold text-primary-600">DocTrack</h1>
-        <p class="text-sm text-gray-500">Document Management</p>
+        <h1 class="text-xl lg:text-2xl font-bold text-primary-600">DocTrack</h1>
+        <p class="text-xs lg:text-sm text-gray-500">Document Management</p>
       </div>
       
       <nav class="mt-6">
@@ -12,6 +25,7 @@
           to="/dashboard"
           class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
           active-class="bg-primary-50 text-primary-600 border-r-4 border-primary-600"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📊</span>
           <span class="font-medium">Dashboard</span>
@@ -20,6 +34,7 @@
           to="/documents"
           class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
           active-class="bg-primary-50 text-primary-600 border-r-4 border-primary-600"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">Documents</span>
@@ -27,40 +42,47 @@
       </nav>
     </aside>
 
+    <!-- Overlay for mobile menu -->
+    <div 
+      v-if="showMobileMenu"
+      @click="showMobileMenu = false"
+      class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+    ></div>
+
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
       <!-- Header -->
-      <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-8 py-4">
-          <div class="flex-1 max-w-2xl">
+      <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between px-4 lg:px-8 py-4 gap-4 lg:gap-0">
+          <div class="flex-1 max-w-2xl ml-12 lg:ml-0">
             <div class="relative">
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search documents..."
-                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm lg:text-base"
               />
               <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
             </div>
           </div>
           
-          <div class="flex items-center space-x-4 ml-6">
+          <div class="flex items-center justify-between lg:justify-start space-x-2 lg:space-x-4 lg:ml-6">
             <UserNotifications />
-            <router-link to="/profile" class="flex items-center space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
-              <div v-if="profilePictureUrl" class="w-10 h-10 rounded-full overflow-hidden">
+            <router-link to="/profile" class="flex items-center space-x-2 lg:space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+              <div v-if="profilePictureUrl" class="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden flex-shrink-0">
                 <img :src="profilePictureUrl" alt="Profile" class="w-full h-full object-cover">
               </div>
-              <div v-else class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
+              <div v-else class="w-8 h-8 lg:w-10 lg:h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm lg:text-base flex-shrink-0">
                 {{ userInitials }}
               </div>
-              <div>
-                <p class="text-sm font-medium text-gray-700">{{ userName }}</p>
-                <p class="text-xs text-gray-500">{{ userEmail }}</p>
+              <div class="hidden sm:block">
+                <p class="text-xs lg:text-sm font-medium text-gray-700">{{ userName }}</p>
+                <p class="text-xs text-gray-500 hidden md:block">{{ userEmail }}</p>
               </div>
             </router-link>
             <button 
               @click="handleLogout"
-              class="ml-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+              class="px-2 lg:px-3 py-1.5 text-xs lg:text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
             >
               Logout
             </button>
@@ -69,9 +91,9 @@
       </header>
 
       <!-- Dashboard Content -->
-      <main class="p-8">
+      <main class="p-4 lg:p-8">
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
           <div 
             v-for="stat in stats" 
             :key="stat.title"
@@ -79,14 +101,14 @@
           >
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-gray-600">{{ stat.title }}</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stat.value }}</p>
-                <p class="text-sm mt-2" :class="stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'">
+                <p class="text-xs lg:text-sm font-medium text-gray-600">{{ stat.title }}</p>
+                <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ stat.value }}</p>
+                <p class="text-xs lg:text-sm mt-2" :class="stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'">
                   <span>{{ stat.change }}</span>
-                  <span class="text-gray-500 ml-1">vs last month</span>
+                  <span class="text-gray-500 ml-1 hidden sm:inline">vs last month</span>
                 </p>
               </div>
-              <div :class="`text-4xl ${stat.color}`">
+              <div :class="`text-3xl lg:text-4xl ${stat.color}`">
                 {{ stat.icon }}
               </div>
             </div>
@@ -94,10 +116,10 @@
         </div>
 
         <!-- Charts and Recent Activity -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
           <!-- Document Status Overview -->
           <div class="lg:col-span-2 card">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Document Status Overview</h2>
+            <h2 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Document Status Overview</h2>
             <div class="space-y-4">
               <div v-for="status in documentStatus" :key="status.name">
                 <div class="flex items-center justify-between mb-2">
@@ -1080,6 +1102,7 @@ export default {
   },
   data() {
     return {
+      showMobileMenu: false,
       searchQuery: '',
       filterStatus: 'all',
       userName: '',

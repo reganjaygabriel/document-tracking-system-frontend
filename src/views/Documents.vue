@@ -1,16 +1,30 @@
 <template>
-  <div class="flex h-screen bg-gray-50">
+  <div class="flex flex-col lg:flex-row h-screen bg-gray-50">
+    <!-- Mobile Menu Button -->
+    <button 
+      @click="showMobileMenu = !showMobileMenu"
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-primary-600 text-white rounded-lg shadow-lg"
+    >
+      <span class="text-2xl">{{ showMobileMenu ? '✕' : '☰' }}</span>
+    </button>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-lg">
+    <aside 
+      :class="[
+        'w-64 bg-white shadow-lg transition-transform duration-300 lg:relative fixed inset-y-0 left-0 z-40',
+        showMobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      ]"
+    >
       <div class="p-6">
-        <h1 class="text-2xl font-bold text-primary-600">DocTrack</h1>
-        <p class="text-sm text-gray-500">Document Management</p>
+        <h1 class="text-xl lg:text-2xl font-bold text-primary-600">DocTrack</h1>
+        <p class="text-xs lg:text-sm text-gray-500">Document Management</p>
       </div>
       
       <nav class="mt-6">
         <router-link 
           to="/dashboard"
           class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📊</span>
           <span class="font-medium">Dashboard</span>
@@ -18,6 +32,7 @@
         <router-link 
           to="/documents"
           class="flex items-center px-6 py-3 bg-primary-50 text-primary-600 border-r-4 border-primary-600 transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">Documents</span>
@@ -25,50 +40,64 @@
       </nav>
     </aside>
 
+    <!-- Overlay for mobile menu -->
+    <div 
+      v-if="showMobileMenu"
+      @click="showMobileMenu = false"
+      class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+    ></div>
+
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
       <!-- Header -->
-      <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-8 py-4">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">My Documents</h2>
-            <p class="text-sm text-gray-500 mt-1">Manage and organize your documents</p>
+      <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="flex items-center justify-between px-4 lg:px-8 py-4">
+          <div class="ml-12 lg:ml-0">
+            <h2 class="text-lg lg:text-2xl font-bold text-gray-900">My Documents</h2>
+            <p class="text-xs lg:text-sm text-gray-500 mt-1 hidden sm:block">Manage and organize your documents</p>
           </div>
           
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 lg:space-x-4">
             <UserNotifications />
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
+            <div class="hidden sm:flex items-center space-x-3">
+              <div class="w-8 h-8 lg:w-10 lg:h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-sm lg:text-base">
                 {{ userInitials }}
               </div>
-              <div>
+              <div class="hidden md:block">
                 <p class="text-sm font-medium text-gray-700">{{ userName }}</p>
                 <p class="text-xs text-gray-500">{{ userEmail }}</p>
               </div>
               <button 
                 @click="handleLogout"
-                class="ml-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                class="ml-2 px-2 lg:px-3 py-1.5 text-xs lg:text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
               >
                 Logout
               </button>
             </div>
+            <!-- Mobile logout -->
+            <button 
+              @click="handleLogout"
+              class="sm:hidden p-2 text-red-600 hover:text-red-700"
+            >
+              <span class="text-xl">🚪</span>
+            </button>
           </div>
         </div>
       </header>
 
       <!-- Documents Content -->
-      <main class="p-8">
+      <main class="p-4 lg:p-8">
         <!-- Filters and Actions -->
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center space-x-4">
+        <div class="bg-white rounded-xl shadow-sm p-4 lg:p-6 mb-4 lg:mb-6">
+          <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:space-x-4 flex-1">
               <!-- Search -->
-              <div class="relative">
+              <div class="relative flex-1 lg:flex-initial">
                 <input
                   v-model="searchQuery"
                   type="text"
                   placeholder="Search documents..."
-                  class="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  class="w-full lg:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm lg:text-base"
                 />
                 <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
               </div>
@@ -76,7 +105,7 @@
               <!-- Status Filter -->
               <select 
                 v-model="filterStatus"
-                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm lg:text-base"
               >
                 <option value="all">All Status</option>
                 <option value="Pending">Pending</option>
@@ -88,7 +117,7 @@
               <!-- Category Filter -->
               <select 
                 v-model="filterCategory"
-                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm lg:text-base"
               >
                 <option value="all">All Categories</option>
                 <option value="Financial Reports">Financial Reports</option>
@@ -727,6 +756,7 @@ export default {
   },
   data() {
     return {
+      showMobileMenu: false,
       userName: '',
       userEmail: '',
       searchQuery: '',

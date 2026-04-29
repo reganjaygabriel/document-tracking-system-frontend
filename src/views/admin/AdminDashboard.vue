@@ -1,10 +1,23 @@
 <template>
-  <div class="flex h-screen bg-gray-50">
+  <div class="flex flex-col lg:flex-row h-screen bg-gray-50">
+    <!-- Mobile Menu Button -->
+    <button 
+      @click="showMobileMenu = !showMobileMenu"
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-600 text-white rounded-lg shadow-lg"
+    >
+      <span class="text-2xl">{{ showMobileMenu ? '✕' : '☰' }}</span>
+    </button>
+
     <!-- Admin Sidebar -->
-    <aside class="w-64 bg-gradient-to-b from-indigo-600 to-purple-700 shadow-lg">
+    <aside 
+      :class="[
+        'w-64 bg-gradient-to-b from-indigo-600 to-purple-700 shadow-lg transition-transform duration-300 lg:relative fixed inset-y-0 left-0 z-40',
+        showMobileMenu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      ]"
+    >
       <div class="p-6">
-        <h1 class="text-2xl font-bold text-white">DocTrack Admin</h1>
-        <p class="text-sm text-indigo-200">Administration Panel</p>
+        <h1 class="text-xl lg:text-2xl font-bold text-white">DocTrack Admin</h1>
+        <p class="text-xs lg:text-sm text-indigo-200">Administration Panel</p>
       </div>
       
       <nav class="mt-6">
@@ -12,6 +25,7 @@
           to="/admin/dashboard"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
           active-class="bg-white bg-opacity-20 border-r-4 border-white"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📊</span>
           <span class="font-medium">Dashboard</span>
@@ -19,6 +33,7 @@
         <router-link 
           to="/admin/users"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">👥</span>
           <span class="font-medium">User Management</span>
@@ -26,6 +41,7 @@
         <router-link 
           to="/admin/documents"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">All Documents</span>
@@ -33,6 +49,7 @@
         <router-link 
           to="/admin/analytics"
           class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+          @click="showMobileMenu = false"
         >
           <span class="text-xl mr-3">📈</span>
           <span class="font-medium">Analytics</span>
@@ -48,180 +65,194 @@
       </div>
     </aside>
 
+    <!-- Overlay for mobile menu -->
+    <div 
+      v-if="showMobileMenu"
+      @click="showMobileMenu = false"
+      class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+    ></div>
+
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
       <!-- Header -->
-      <header class="bg-white shadow-sm">
-        <div class="flex items-center justify-between px-8 py-4">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">Admin Dashboard</h2>
-            <p class="text-sm text-gray-600">System Overview and Management</p>
+      <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="flex items-center justify-between px-4 lg:px-8 py-4">
+          <div class="ml-12 lg:ml-0">
+            <h2 class="text-lg lg:text-2xl font-bold text-gray-900">Admin Dashboard</h2>
+            <p class="text-xs lg:text-sm text-gray-600 hidden sm:block">System Overview and Management</p>
           </div>
           
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 lg:space-x-4">
             <button 
               @click="toggleNotifications"
               class="relative p-2 text-gray-600 hover:text-gray-800"
             >
-              <span class="text-2xl">🔔</span>
+              <span class="text-xl lg:text-2xl">🔔</span>
               <span 
                 v-if="unreadCount > 0"
-                class="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                class="absolute top-1 right-1 w-4 h-4 lg:w-5 lg:h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
               >
                 {{ unreadCount > 9 ? '9+' : unreadCount }}
               </span>
             </button>
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+            <div class="hidden sm:flex items-center space-x-3">
+              <div class="w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-sm lg:text-base">
                 {{ userInitials }}
               </div>
-              <div>
+              <div class="hidden md:block">
                 <p class="text-sm font-medium text-gray-700">{{ userName }}</p>
                 <p class="text-xs text-indigo-600 font-semibold">Admin</p>
               </div>
               <button 
                 @click="handleLogout"
-                class="ml-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                class="ml-2 px-2 lg:px-3 py-1.5 text-xs lg:text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
               >
                 Logout
               </button>
             </div>
+            <!-- Mobile logout -->
+            <button 
+              @click="handleLogout"
+              class="sm:hidden p-2 text-red-600 hover:text-red-700"
+            >
+              <span class="text-xl">🚪</span>
+            </button>
           </div>
         </div>
       </header>
 
       <!-- Dashboard Content -->
-      <main class="p-8">
+      <main class="p-4 lg:p-8">
         <!-- Admin Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-blue-500">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-gray-600">Total Users</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats[2]?.value || '0' }}</p>
-                <p class="text-sm text-green-600 mt-2">{{ stats[3]?.value || '0' }} active</p>
+                <p class="text-xs lg:text-sm font-medium text-gray-600">Total Users</p>
+                <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ stats[2]?.value || '0' }}</p>
+                <p class="text-xs lg:text-sm text-green-600 mt-2">{{ stats[3]?.value || '0' }} active</p>
               </div>
-              <div class="text-4xl">👥</div>
+              <div class="text-3xl lg:text-4xl">👥</div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-green-500">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-gray-600">Total Documents</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats[0]?.value || '0' }}</p>
-                <p class="text-sm text-blue-600 mt-2">All documents</p>
+                <p class="text-xs lg:text-sm font-medium text-gray-600">Total Documents</p>
+                <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ stats[0]?.value || '0' }}</p>
+                <p class="text-xs lg:text-sm text-blue-600 mt-2">All documents</p>
               </div>
-              <div class="text-4xl">📄</div>
+              <div class="text-3xl lg:text-4xl">📄</div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-yellow-500">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-gray-600">Pending Review</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats[1]?.value || '0' }}</p>
-                <p class="text-sm text-yellow-600 mt-2">Awaiting approval</p>
+                <p class="text-xs lg:text-sm font-medium text-gray-600">Pending Review</p>
+                <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ stats[1]?.value || '0' }}</p>
+                <p class="text-xs lg:text-sm text-yellow-600 mt-2">Awaiting approval</p>
               </div>
-              <div class="text-4xl">⏳</div>
+              <div class="text-3xl lg:text-4xl">⏳</div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-purple-500">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-gray-600">Storage Used</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">{{ formatBytes(totalStorage) }}</p>
-                <p class="text-sm text-purple-600 mt-2">Total files</p>
+                <p class="text-xs lg:text-sm font-medium text-gray-600">Storage Used</p>
+                <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ formatBytes(totalStorage) }}</p>
+                <p class="text-xs lg:text-sm text-purple-600 mt-2">Total files</p>
               </div>
-              <div class="text-4xl">💾</div>
+              <div class="text-3xl lg:text-4xl">💾</div>
             </div>
           </div>
         </div>
 
         <!-- Quick Admin Actions -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6">
+            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div class="space-y-3">
               <button 
                 @click="$router.push('/admin/users')"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
-                <span class="text-2xl mr-3">👤</span>
-                <span class="font-medium text-gray-700">Manage Users</span>
+                <span class="text-xl lg:text-2xl mr-3">👤</span>
+                <span class="font-medium text-gray-700 text-sm lg:text-base">Manage Users</span>
               </button>
               <button 
                 @click="$router.push('/admin/documents')"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
-                <span class="text-2xl mr-3">📁</span>
-                <span class="font-medium text-gray-700">View All Documents</span>
+                <span class="text-xl lg:text-2xl mr-3">📁</span>
+                <span class="font-medium text-gray-700 text-sm lg:text-base">View All Documents</span>
               </button>
               <button 
                 @click="openChatWidget"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
-                <span class="text-2xl mr-3">💬</span>
-                <span class="font-medium text-gray-700">Open Chat</span>
+                <span class="text-xl lg:text-2xl mr-3">💬</span>
+                <span class="font-medium text-gray-700 text-sm lg:text-base">Open Chat</span>
               </button>
               <button 
                 @click="showReportModal = true"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
-                <span class="text-2xl mr-3">📊</span>
-                <span class="font-medium text-gray-700">Generate Report</span>
+                <span class="text-xl lg:text-2xl mr-3">📊</span>
+                <span class="font-medium text-gray-700 text-sm lg:text-base">Generate Report</span>
               </button>
               <button 
                 @click="$router.push('/admin/analytics')"
                 class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
               >
-                <span class="text-2xl mr-3">📈</span>
-                <span class="font-medium text-gray-700">View Analytics</span>
+                <span class="text-xl lg:text-2xl mr-3">📈</span>
+                <span class="font-medium text-gray-700 text-sm lg:text-base">View Analytics</span>
               </button>
             </div>
           </div>
 
-          <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">System Overview</h3>
-            <div class="grid grid-cols-2 gap-4">
+          <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-4 lg:p-6">
+            <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">System Overview</h3>
+            <div class="grid grid-cols-2 gap-3 lg:gap-4">
               <!-- Storage Usage -->
-              <div class="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+              <div class="p-3 lg:p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-medium text-blue-900">Storage Used</span>
-                  <span class="text-2xl">💾</span>
+                  <span class="text-xs lg:text-sm font-medium text-blue-900">Storage Used</span>
+                  <span class="text-xl lg:text-2xl">💾</span>
                 </div>
-                <p class="text-2xl font-bold text-blue-900">{{ formatBytes(totalStorage) }}</p>
+                <p class="text-lg lg:text-2xl font-bold text-blue-900">{{ formatBytes(totalStorage) }}</p>
                 <p class="text-xs text-blue-700 mt-1">Total file storage</p>
               </div>
 
               <!-- Active Users Today -->
-              <div class="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+              <div class="p-3 lg:p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-medium text-green-900">Active Today</span>
-                  <span class="text-2xl">👥</span>
+                  <span class="text-xs lg:text-sm font-medium text-green-900">Active Today</span>
+                  <span class="text-xl lg:text-2xl">👥</span>
                 </div>
-                <p class="text-2xl font-bold text-green-900">{{ activeUsersToday }}</p>
+                <p class="text-lg lg:text-2xl font-bold text-green-900">{{ activeUsersToday }}</p>
                 <p class="text-xs text-green-700 mt-1">Users online today</p>
               </div>
 
               <!-- Pending Approvals -->
-              <div class="p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg">
+              <div class="p-3 lg:p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-medium text-yellow-900">Pending</span>
-                  <span class="text-2xl">⏳</span>
+                  <span class="text-xs lg:text-sm font-medium text-yellow-900">Pending</span>
+                  <span class="text-xl lg:text-2xl">⏳</span>
                 </div>
-                <p class="text-2xl font-bold text-yellow-900">{{ stats[1]?.value || 0 }}</p>
+                <p class="text-lg lg:text-2xl font-bold text-yellow-900">{{ stats[1]?.value || 0 }}</p>
                 <p class="text-xs text-yellow-700 mt-1">Awaiting review</p>
               </div>
 
               <!-- Recent Uploads -->
-              <div class="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+              <div class="p-3 lg:p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-medium text-purple-900">Today's Uploads</span>
-                  <span class="text-2xl">📤</span>
+                  <span class="text-xs lg:text-sm font-medium text-purple-900">Today's Uploads</span>
+                  <span class="text-xl lg:text-2xl">📤</span>
                 </div>
-                <p class="text-2xl font-bold text-purple-900">{{ todayUploads }}</p>
+                <p class="text-lg lg:text-2xl font-bold text-purple-900">{{ todayUploads }}</p>
                 <p class="text-xs text-purple-700 mt-1">Documents uploaded</p>
               </div>
             </div>
@@ -444,6 +475,7 @@ export default {
   },
   data() {
     return {
+      showMobileMenu: false,
       userName: '',
       userEmail: '',
       stats: [
