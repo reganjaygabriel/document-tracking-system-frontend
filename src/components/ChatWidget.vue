@@ -332,7 +332,7 @@
             :key="msg.id"
             :class="[
               'flex gap-3 items-start',
-              msg.sender === currentUserId ? 'justify-end' : 'justify-start'
+              msg.sender === currentUserId ? 'justify-start' : 'justify-end'
             ]"
           >
             <!-- Profile Avatar - Always on the left, clickable -->
