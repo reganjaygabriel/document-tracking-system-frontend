@@ -16,7 +16,7 @@
       ]"
     >
       <div class="p-6">
-        <h1 class="text-xl lg:text-2xl font-bold text-primary-600">DocTrack</h1>
+        <h1 class="text-xl lg:text-2xl font-bold text-primary-600">TraceDocs</h1>
         <p class="text-xs lg:text-sm text-gray-500">Document Management</p>
       </div>
       
@@ -36,6 +36,14 @@
         >
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">Documents</span>
+        </router-link>
+        <router-link 
+          to="/archive"
+          class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
+          @click="showMobileMenu = false"
+        >
+          <span class="text-xl mr-3">🗄️</span>
+          <span class="font-medium">Archive</span>
         </router-link>
       </nav>
     </aside>
@@ -618,11 +626,121 @@
               <p v-else class="text-gray-500 text-center py-8">Loading text content...</p>
             </div>
 
-            <!-- Office Documents (Word, Excel, PowerPoint) -->
-            <div v-else-if="['DOC', 'DOCX', 'XLS', 'XLSX', 'PPT', 'PPTX'].includes(selectedDocument.type)" class="bg-gray-50 rounded-lg p-8 text-center">
-              <span class="text-6xl mb-4 block">{{ selectedDocument.icon }}</span>
-              <p class="text-gray-700 mb-4">Preview not available for {{ selectedDocument.type }} files</p>
-              <p class="text-sm text-gray-500 mb-4">Download the file to view its contents</p>
+            <!-- Office Documents (Word, Excel, PowerPoint) - WITH PREVIEW -->
+            <div v-else-if="['DOC', 'DOCX', 'XLS', 'XLSX', 'PPT', 'PPTX'].includes(selectedDocument.type)" class="bg-gray-50 rounded-lg p-4">
+              <div class="mb-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span class="text-4xl">{{ selectedDocument.icon }}</span>
+                  <div>
+                    <p class="text-lg font-semibold text-gray-900">{{ selectedDocument.type }} Document</p>
+                    <p class="text-sm text-gray-600">{{ selectedDocument.name }}</p>
+                  </div>
+                </div>
+                <div class="flex space-x-2">
+                  <button 
+                    @click="openInNewTab(selectedDocument)"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors text-sm"
+                  >
+                    <span class="mr-2">🔗</span>
+                    Open
+                  </button>
+                  <button 
+                    @click="downloadDocument(selectedDocument)"
+                    class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center transition-colors text-sm"
+                  >
+                    <span class="mr-2">⬇️</span>
+                    Download
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Document Information Card -->
+              <div class="bg-white rounded-lg border-2 border-gray-200 p-6 mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Document Information</h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-sm font-medium text-gray-600">File Name</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.name }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-600">File Type</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.type }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-600">File Size</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.size }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-600">Last Modified</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.lastModified }}</p>
+                  </div>
+                  <div class="col-span-2">
+                    <p class="text-sm font-medium text-gray-600">Description</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.description || 'No description available' }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Office Document Preview using Microsoft Office Online Viewer -->
+              <div class="bg-white rounded-lg border-2 border-gray-200 overflow-hidden mb-4" style="height: 600px;">
+                <iframe 
+                  :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedDocument.file_url)}`"
+                  class="w-full h-full"
+                  frameborder="0"
+                  @load="handlePreviewLoad"
+                  @error="handlePreviewError"
+                >
+                </iframe>
+              </div>
+              
+              <!-- Alternative Preview Options -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <!-- Google Docs Viewer Alternative -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+                  <div class="flex items-center mb-2">
+                    <span class="text-2xl mr-2">📄</span>
+                    <h4 class="font-semibold text-blue-900">Google Docs Viewer</h4>
+                  </div>
+                  <p class="text-sm text-blue-700 mb-3">View with Google's document viewer</p>
+                  <a 
+                    :href="`https://docs.google.com/gview?url=${encodeURIComponent(selectedDocument.file_url)}&embedded=true`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                  >
+                    Open in Google Viewer
+                  </a>
+                </div>
+
+                <!-- Microsoft Office Online Alternative -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+                  <div class="flex items-center mb-2">
+                    <span class="text-2xl mr-2">📊</span>
+                    <h4 class="font-semibold text-green-900">Office Online</h4>
+                  </div>
+                  <p class="text-sm text-green-700 mb-3">View with Microsoft Office Online</p>
+                  <a 
+                    :href="`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(selectedDocument.file_url)}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+                  >
+                    Open in Office Online
+                  </a>
+                </div>
+              </div>
+              
+              <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <div class="flex items-start">
+                  <span class="text-lg mr-2">ℹ️</span>
+                  <div>
+                    <p class="text-sm text-blue-900 font-medium">Office Document Preview</p>
+                    <p class="text-xs text-blue-700 mt-1">
+                      Preview powered by Microsoft Office Online Viewer. If preview doesn't load, try the alternative viewers above or download the file to view in Microsoft Office or compatible software.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Unsupported Preview -->
@@ -739,6 +857,95 @@
       </div>
     </div>
     
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all animate-fadeIn">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-red-50 to-orange-50">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <span class="text-2xl">⚠️</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900">Confirm Delete</h2>
+              <p class="text-sm text-gray-600">This action will move the document to archive</p>
+            </div>
+          </div>
+          <button 
+            @click="cancelDelete" 
+            class="text-gray-400 hover:text-gray-600 hover:bg-white rounded-full p-2 transition-all duration-200"
+          >
+            <span class="text-2xl">✕</span>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+          <div class="mb-6">
+            <p class="text-gray-700 text-base mb-4">
+              Are you sure you want to delete this document?
+            </p>
+            
+            <!-- Document Info -->
+            <div class="bg-gray-50 rounded-xl p-4 border-2 border-gray-200">
+              <div class="flex items-center space-x-3">
+                <span class="text-4xl">{{ getFileIcon(documentToDelete?.name || '') }}</span>
+                <div class="flex-1 min-w-0">
+                  <p class="font-semibold text-gray-900 truncate">
+                    {{ documentToDelete?.name }}
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    {{ documentToDelete?.type }} • {{ documentToDelete?.size }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info Message -->
+          <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
+            <div class="flex items-start">
+              <span class="text-xl mr-2">ℹ️</span>
+              <div>
+                <p class="text-sm text-blue-900 font-medium">Don't worry!</p>
+                <p class="text-sm text-blue-700">
+                  This document will be moved to your Archive where you can restore it later.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center space-x-3">
+            <button 
+              @click="cancelDelete"
+              :disabled="isDeleting"
+              class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="confirmDelete"
+              :disabled="isDeleting"
+              class="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <span v-if="!isDeleting" class="flex items-center">
+                <span class="mr-2">🗑️</span>
+                Delete
+              </span>
+              <span v-else class="flex items-center">
+                <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Deleting...
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- Chat Widget -->
     <ChatWidget />
   </div>
@@ -771,6 +978,9 @@ export default {
       showUploadModal: false,
       showViewModal: false,
       showEditModal: false,
+      showDeleteModal: false,
+      documentToDelete: null,
+      isDeleting: false,
       selectedDocument: null,
       isDragging: false,
       isUploading: false,
@@ -1143,11 +1353,16 @@ export default {
         this.isSaving = false;
       }
     },
-    async deleteDocument(doc) {
-      if (!confirm(`Are you sure you want to delete "${doc.name}"?`)) {
-        return;
-      }
-
+    deleteDocument(doc) {
+      // Show custom delete modal instead of browser confirm
+      this.documentToDelete = doc;
+      this.showDeleteModal = true;
+    },
+    async confirmDelete() {
+      if (!this.documentToDelete) return;
+      
+      this.isDeleting = true;
+      
       try {
         const token = localStorage.getItem('authToken');
         
@@ -1156,7 +1371,7 @@ export default {
           return;
         }
 
-        const response = await fetch(`http://localhost:8000/api/documents/${doc.id}/`, {
+        const response = await fetch(`http://localhost:8000/api/documents/${this.documentToDelete.id}/`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -1168,8 +1383,17 @@ export default {
           
           if (data.success) {
             // Remove document from local list
-            this.documents = this.documents.filter(d => d.id !== doc.id);
-            alert('Document deleted successfully');
+            this.documents = this.documents.filter(d => d.id !== this.documentToDelete.id);
+            
+            // Close modal
+            this.showDeleteModal = false;
+            this.documentToDelete = null;
+            
+            // Show success message briefly
+            this.uploadSuccess = 'Document deleted successfully';
+            setTimeout(() => {
+              this.uploadSuccess = '';
+            }, 3000);
           } else {
             alert(data.error || 'Failed to delete document');
           }
@@ -1179,6 +1403,24 @@ export default {
       } catch (error) {
         console.error('Error deleting document:', error);
         alert('Error deleting document. Please try again.');
+      } finally {
+        this.isDeleting = false;
+      }
+    },
+    cancelDelete() {
+      this.showDeleteModal = false;
+      this.documentToDelete = null;
+    },
+    handlePreviewLoad(event) {
+      console.log('Preview loaded successfully');
+    },
+    handlePreviewError(event) {
+      console.error('Preview failed to load:', event);
+      // Optionally show a message to the user
+    },
+    openInNewTab(document) {
+      if (document.file_url) {
+        window.open(document.file_url, '_blank', 'noopener,noreferrer');
       }
     },
     handleLogout() {

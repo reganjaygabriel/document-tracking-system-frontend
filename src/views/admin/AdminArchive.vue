@@ -24,10 +24,17 @@
         </router-link>
         <router-link 
           to="/admin/documents"
-          class="flex items-center px-6 py-3 text-white bg-white bg-opacity-20 border-r-4 border-white transition-colors duration-200"
+          class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
         >
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">All Documents</span>
+        </router-link>
+        <router-link 
+          to="/admin/archive"
+          class="flex items-center px-6 py-3 text-white bg-white bg-opacity-20 border-r-4 border-white transition-colors duration-200"
+        >
+          <span class="text-xl mr-3">🗄️</span>
+          <span class="font-medium">Archive</span>
         </router-link>
         <router-link 
           to="/admin/analytics"
@@ -35,13 +42,6 @@
         >
           <span class="text-xl mr-3">📈</span>
           <span class="font-medium">Analytics</span>
-        </router-link>
-        <router-link 
-          to="/admin/archive"
-          class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
-        >
-          <span class="text-xl mr-3">🗄️</span>
-          <span class="font-medium">Archive</span>
         </router-link>
       </nav>
       
@@ -60,8 +60,8 @@
       <header class="bg-white shadow-sm">
         <div class="flex items-center justify-between px-8 py-4">
           <div>
-            <h2 class="text-2xl font-bold text-gray-900">All Documents</h2>
-            <p class="text-sm text-gray-600">View and manage documents from all users</p>
+            <h2 class="text-2xl font-bold text-gray-900">Document Archive</h2>
+            <p class="text-sm text-gray-600">Recover deleted documents</p>
           </div>
           
           <div class="flex items-center space-x-4">
@@ -87,17 +87,30 @@
 
       <!-- Content -->
       <main class="p-8">
+        <!-- Info Banner -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+          <div class="flex items-start">
+            <span class="text-2xl mr-3">ℹ️</span>
+            <div>
+              <h3 class="text-sm font-semibold text-blue-900">About Archive</h3>
+              <p class="text-sm text-blue-700 mt-1">
+                Deleted documents are moved to the archive. You can restore them or permanently delete them from here.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Filters -->
         <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Search -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
               <input
                 v-model="filters.search"
-                @input="loadDocuments"
+                @input="loadArchivedDocuments"
                 type="text"
-                placeholder="Search documents..."
+                placeholder="Search archived documents..."
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -107,7 +120,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
               <select
                 v-model="filters.status"
-                @change="loadDocuments"
+                @change="loadArchivedDocuments"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="">All Status</option>
@@ -123,7 +136,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
               <select
                 v-model="filters.category"
-                @change="loadDocuments"
+                @change="loadArchivedDocuments"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="">All Categories</option>
@@ -136,24 +149,12 @@
                 <option value="Other">Other</option>
               </select>
             </div>
-
-            <!-- Owner Filter -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Owner</label>
-              <input
-                v-model="filters.owner"
-                @input="loadDocuments"
-                type="text"
-                placeholder="Filter by owner..."
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
           </div>
 
           <!-- Stats -->
           <div class="mt-4 flex items-center justify-between">
             <p class="text-sm text-gray-600">
-              Showing <span class="font-semibold">{{ documents.length }}</span> documents
+              <span class="font-semibold">{{ documents.length }}</span> archived documents
             </p>
             <button 
               @click="clearFilters"
@@ -164,16 +165,17 @@
           </div>
         </div>
 
-        <!-- Documents Table -->
+        <!-- Archived Documents Table -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden">
           <div v-if="isLoading" class="p-12 text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600">Loading documents...</p>
+            <p class="mt-4 text-gray-600">Loading archived documents...</p>
           </div>
 
           <div v-else-if="documents.length === 0" class="p-12 text-center">
-            <span class="text-6xl mb-4 block">📄</span>
-            <p class="text-gray-600">No documents found</p>
+            <span class="text-6xl mb-4 block">🗄️</span>
+            <p class="text-gray-600">No archived documents found</p>
+            <p class="text-sm text-gray-500 mt-2">Deleted documents will appear here</p>
           </div>
 
           <div v-else class="overflow-x-auto">
@@ -183,10 +185,9 @@
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Document</th>
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Owner</th>
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Type</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Category</th>
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Size</th>
-                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Created</th>
+                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Archived</th>
+                  <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Archived By</th>
                   <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
@@ -212,44 +213,38 @@
                     </div>
                   </td>
                   <td class="py-4 px-4 text-sm text-gray-700">{{ doc.file_type }}</td>
-                  <td class="py-4 px-4 text-sm text-gray-700">{{ doc.category || 'Uncategorized' }}</td>
                   <td class="py-4 px-4">
-                    <select
-                      :value="doc.status"
-                      @change="updateDocumentStatus(doc, $event.target.value)"
-                      class="px-3 py-1 rounded-full text-xs font-semibold border-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    <span
+                      class="px-3 py-1 rounded-full text-xs font-semibold"
                       :class="getStatusClass(doc.status)"
                     >
-                      <option value="Pending">Pending</option>
-                      <option value="In Review">In Review</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
+                      {{ doc.status }}
+                    </span>
                   </td>
-                  <td class="py-4 px-4 text-sm text-gray-600">{{ formatFileSize(doc.file_size) }}</td>
-                  <td class="py-4 px-4 text-sm text-gray-600">{{ formatDate(doc.created_at) }}</td>
+                  <td class="py-4 px-4 text-sm text-gray-600">{{ formatDate(doc.archived_at) }}</td>
+                  <td class="py-4 px-4 text-sm text-gray-600">{{ doc.archived_by_name || 'Admin' }}</td>
                   <td class="py-4 px-4">
                     <div class="flex space-x-2">
                       <button 
+                        @click="restoreDocument(doc)"
+                        class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs font-medium transition-colors"
+                        title="Restore Document"
+                      >
+                        ↩️ Restore
+                      </button>
+                      <button 
                         @click="viewDocument(doc)"
                         class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-medium transition-colors"
-                        title="View Document"
+                        title="View Details"
                       >
                         View
                       </button>
                       <button 
-                        @click="downloadDocument(doc)"
-                        class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs font-medium transition-colors"
-                        title="Download"
-                      >
-                        Download
-                      </button>
-                      <button 
-                        @click="deleteDocument(doc)"
+                        @click="permanentlyDeleteDocument(doc)"
                         class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-xs font-medium transition-colors"
-                        title="Delete"
+                        title="Permanently Delete"
                       >
-                        Delete
+                        🗑️ Delete Forever
                       </button>
                     </div>
                   </td>
@@ -265,7 +260,7 @@
     <div v-if="selectedDocument && showViewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 class="text-2xl font-bold text-gray-900">Document Details</h2>
+          <h2 class="text-2xl font-bold text-gray-900">Archived Document Details</h2>
           <button @click="showViewModal = false" class="text-gray-400 hover:text-gray-600">
             <span class="text-2xl">✕</span>
           </button>
@@ -283,7 +278,6 @@
             <div>
               <label class="text-sm font-medium text-gray-700">Owner:</label>
               <p class="text-gray-900">{{ selectedDocument.owner_name }}</p>
-              <p class="text-xs text-gray-500">{{ selectedDocument.owner_email }}</p>
             </div>
             <div>
               <label class="text-sm font-medium text-gray-700">Status:</label>
@@ -292,33 +286,21 @@
               </span>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-700">Category:</label>
-              <p class="text-gray-900">{{ selectedDocument.category || 'Uncategorized' }}</p>
+              <label class="text-sm font-medium text-gray-700">Archived:</label>
+              <p class="text-gray-900">{{ formatDate(selectedDocument.archived_at) }}</p>
             </div>
             <div>
-              <label class="text-sm font-medium text-gray-700">Size:</label>
-              <p class="text-gray-900">{{ formatFileSize(selectedDocument.file_size) }}</p>
-            </div>
-            <div class="col-span-2">
-              <label class="text-sm font-medium text-gray-700">Description:</label>
-              <p class="text-gray-900">{{ selectedDocument.description || 'No description' }}</p>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Created:</label>
-              <p class="text-gray-900">{{ formatDate(selectedDocument.created_at) }}</p>
-            </div>
-            <div>
-              <label class="text-sm font-medium text-gray-700">Last Modified:</label>
-              <p class="text-gray-900">{{ formatDate(selectedDocument.updated_at) }}</p>
+              <label class="text-sm font-medium text-gray-700">Archived By:</label>
+              <p class="text-gray-900">{{ selectedDocument.archived_by_name || 'Admin' }}</p>
             </div>
           </div>
           <div class="flex space-x-3 pt-4 border-t">
             <button 
-              @click="downloadDocument(selectedDocument)"
-              class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center"
+              @click="restoreDocument(selectedDocument); showViewModal = false"
+              class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
             >
-              <span class="mr-2">⬇️</span>
-              Download
+              <span class="mr-2">↩️</span>
+              Restore
             </button>
             <button 
               @click="showViewModal = false"
@@ -341,7 +323,7 @@ import AdminNotifications from '../../components/AdminNotifications.vue'
 import ChatWidget from '../../components/ChatWidget.vue'
 
 export default {
-  name: 'AdminDocuments',
+  name: 'AdminArchive',
   components: {
     AdminNotifications,
     ChatWidget
@@ -355,8 +337,7 @@ export default {
       filters: {
         search: '',
         status: '',
-        category: '',
-        owner: ''
+        category: ''
       },
       selectedDocument: null,
       showViewModal: false
@@ -383,10 +364,10 @@ export default {
     this.userName = localStorage.getItem('userName') || 'Admin';
     this.userEmail = localStorage.getItem('userEmail') || 'admin@example.com';
     
-    this.loadDocuments();
+    this.loadArchivedDocuments();
   },
   methods: {
-    async loadDocuments() {
+    async loadArchivedDocuments() {
       this.isLoading = true;
       try {
         const token = localStorage.getItem('authToken');
@@ -403,7 +384,7 @@ export default {
         if (this.filters.category) params.append('category', this.filters.category);
 
         const queryString = params.toString();
-        const url = `http://localhost:8000/api/admin/documents/${queryString ? '?' + queryString : ''}`;
+        const url = `http://localhost:8000/api/admin/documents/archived/${queryString ? '?' + queryString : ''}`;
 
         const response = await fetch(url, {
           headers: {
@@ -416,23 +397,14 @@ export default {
           
           if (data.success && data.documents) {
             this.documents = data.documents;
-            
-            // Apply owner filter on frontend (if needed)
-            if (this.filters.owner) {
-              this.documents = this.documents.filter(doc => 
-                doc.owner_name.toLowerCase().includes(this.filters.owner.toLowerCase()) ||
-                doc.owner_email.toLowerCase().includes(this.filters.owner.toLowerCase())
-              );
-            }
-            
-            console.log('Loaded documents:', this.documents.length);
+            console.log('Loaded archived documents:', this.documents.length);
           }
         } else if (response.status === 403) {
           alert('Access denied - admin privileges required');
           this.$router.push('/dashboard');
         }
       } catch (error) {
-        console.error('Error loading documents:', error);
+        console.error('Error loading archived documents:', error);
       } finally {
         this.isLoading = false;
       }
@@ -441,79 +413,50 @@ export default {
       this.filters = {
         search: '',
         status: '',
-        category: '',
-        owner: ''
+        category: ''
       };
-      this.loadDocuments();
+      this.loadArchivedDocuments();
     },
-    async updateDocumentStatus(doc, newStatus) {
-      try {
-        const token = localStorage.getItem('authToken');
-        
-        const response = await fetch(`http://localhost:8000/api/admin/documents/${doc.id}/status/`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            status: newStatus,
-            comment: `Status changed by admin to ${newStatus}`
-          })
-        });
-
-        if (response.ok) {
-          doc.status = newStatus;
-          alert('Document status updated successfully');
-        } else {
-          alert('Failed to update status');
-        }
-      } catch (error) {
-        console.error('Error updating status:', error);
-        alert('Error updating status');
-      }
-    },
-    viewDocument(doc) {
-      this.selectedDocument = doc;
-      this.showViewModal = true;
-    },
-    async downloadDocument(doc) {
-      try {
-        const token = localStorage.getItem('authToken');
-        
-        const response = await fetch(`http://localhost:8000/api/documents/${doc.id}/download/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = doc.original_filename || doc.name;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        } else {
-          alert('Failed to download document');
-        }
-      } catch (error) {
-        console.error('Download error:', error);
-        alert('Error downloading document');
-      }
-    },
-    async deleteDocument(doc) {
-      if (!confirm(`Are you sure you want to delete "${doc.name}"?`)) {
+    async restoreDocument(doc) {
+      if (!confirm(`Are you sure you want to restore "${doc.name}"?`)) {
         return;
       }
 
       try {
         const token = localStorage.getItem('authToken');
         
-        const response = await fetch(`http://localhost:8000/api/admin/documents/${doc.id}/delete/`, {
+        const response = await fetch(`http://localhost:8000/api/admin/documents/${doc.id}/restore/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          alert('Document restored successfully');
+          this.loadArchivedDocuments();
+        } else {
+          alert('Failed to restore document');
+        }
+      } catch (error) {
+        console.error('Restore error:', error);
+        alert('Error restoring document');
+      }
+    },
+    async permanentlyDeleteDocument(doc) {
+      if (!confirm(`⚠️ WARNING: This will PERMANENTLY delete "${doc.name}".\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?`)) {
+        return;
+      }
+
+      // Double confirmation for permanent delete
+      if (!confirm(`Final confirmation: Delete "${doc.name}" forever?`)) {
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('authToken');
+        
+        const response = await fetch(`http://localhost:8000/api/admin/documents/${doc.id}/permanent-delete/`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -521,8 +464,8 @@ export default {
         });
 
         if (response.ok) {
-          alert('Document deleted successfully');
-          this.loadDocuments();
+          alert('Document permanently deleted');
+          this.loadArchivedDocuments();
         } else {
           alert('Failed to delete document');
         }
@@ -531,14 +474,18 @@ export default {
         alert('Error deleting document');
       }
     },
+    viewDocument(doc) {
+      this.selectedDocument = doc;
+      this.showViewModal = true;
+    },
     getStatusClass(status) {
       const classes = {
-        'Approved': 'bg-green-100 text-green-800 border-green-300',
-        'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-        'In Review': 'bg-blue-100 text-blue-800 border-blue-300',
-        'Rejected': 'bg-red-100 text-red-800 border-red-300'
+        'Approved': 'bg-green-100 text-green-800',
+        'Pending': 'bg-yellow-100 text-yellow-800',
+        'In Review': 'bg-blue-100 text-blue-800',
+        'Rejected': 'bg-red-100 text-red-800'
       };
-      return classes[status] || 'bg-gray-100 text-gray-800 border-gray-300';
+      return classes[status] || 'bg-gray-100 text-gray-800';
     },
     getFileIcon(fileType) {
       const icons = {
@@ -551,13 +498,6 @@ export default {
         'CSV': '📊'
       };
       return icons[fileType] || '📄';
-    },
-    formatFileSize(bytes) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     },
     formatDate(dateString) {
       if (!dateString) return 'Unknown';

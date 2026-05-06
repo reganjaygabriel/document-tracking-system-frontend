@@ -16,7 +16,7 @@
       ]"
     >
       <div class="p-6">
-        <h1 class="text-xl lg:text-2xl font-bold text-white">DocTrack Admin</h1>
+        <h1 class="text-xl lg:text-2xl font-bold text-white">TraceDocs Admin</h1>
         <p class="text-xs lg:text-sm text-indigo-200">Administration Panel</p>
       </div>
       
@@ -52,6 +52,14 @@
         >
           <span class="text-xl mr-3">📈</span>
           <span class="font-medium">Analytics</span>
+        </router-link>
+        <router-link 
+          to="/admin/archive"
+          class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+          @click="showMobileMenu = false"
+        >
+          <span class="text-xl mr-3">🗄️</span>
+          <span class="font-medium">Archive</span>
         </router-link>
       </nav>
       
@@ -396,6 +404,195 @@
         </div>
       </div>
     </div>
+
+    <!-- Edit User Modal -->
+    <div v-if="selectedUser && showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 flex items-center justify-between p-6 border-b border-gray-200 sticky top-0">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+              <span class="text-2xl">✏️</span>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-900">Edit User</h2>
+              <p class="text-sm text-gray-600">Update user information</p>
+            </div>
+          </div>
+          <button @click="cancelEdit" class="text-gray-400 hover:text-gray-600 hover:bg-white rounded-full p-2 transition-all">
+            <span class="text-2xl">✕</span>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <form @submit.prevent="updateUser" class="p-6 space-y-5">
+          <!-- User Avatar Preview -->
+          <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xl">
+              {{ getInitials(editForm.full_name || selectedUser.full_name) }}
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-700">User ID: {{ selectedUser.id }}</p>
+              <p class="text-xs text-gray-500">Editing: {{ selectedUser.email }}</p>
+            </div>
+          </div>
+
+          <!-- Full Name -->
+          <div>
+            <label for="edit_full_name" class="block text-sm font-semibold text-gray-700 mb-2">
+              <span class="mr-2">👤</span>Full Name *
+            </label>
+            <input
+              id="edit_full_name"
+              v-model="editForm.full_name"
+              type="text"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              placeholder="Enter full name"
+            />
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="edit_email" class="block text-sm font-semibold text-gray-700 mb-2">
+              <span class="mr-2">📧</span>Email Address *
+            </label>
+            <input
+              id="edit_email"
+              v-model="editForm.email"
+              type="email"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              placeholder="Enter email address"
+            />
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label for="edit_username" class="block text-sm font-semibold text-gray-700 mb-2">
+              <span class="mr-2">🔑</span>Username *
+            </label>
+            <input
+              id="edit_username"
+              v-model="editForm.username"
+              type="text"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              placeholder="Enter username"
+            />
+          </div>
+
+          <!-- Organization -->
+          <div>
+            <label for="edit_organization" class="block text-sm font-semibold text-gray-700 mb-2">
+              <span class="mr-2">🏢</span>Organization
+            </label>
+            <input
+              id="edit_organization"
+              v-model="editForm.organization"
+              type="text"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              placeholder="Enter organization (optional)"
+            />
+          </div>
+
+          <!-- Role -->
+          <div>
+            <label for="edit_role" class="block text-sm font-semibold text-gray-700 mb-2">
+              <span class="mr-2">🔐</span>User Role *
+            </label>
+            <select
+              id="edit_role"
+              v-model="editForm.role"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white"
+            >
+              <option value="user">👤 Regular User</option>
+              <option value="admin">🔐 Administrator</option>
+            </select>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <span class="mr-2">✅</span>Account Status
+            </label>
+            <div class="flex items-center space-x-4">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  :value="true"
+                  v-model="editForm.is_active"
+                  class="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span class="text-sm font-medium text-gray-700">✅ Active</span>
+              </label>
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  :value="false"
+                  v-model="editForm.is_active"
+                  class="w-4 h-4 text-red-600 focus:ring-red-500"
+                />
+                <span class="text-sm font-medium text-gray-700">❌ Inactive</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Info Box -->
+          <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+            <div class="flex items-start">
+              <span class="text-xl mr-2">ℹ️</span>
+              <div>
+                <p class="text-sm font-medium text-blue-900 mb-1">Update Information</p>
+                <p class="text-sm text-blue-700">
+                  Changes will be saved immediately. Make sure all information is correct before updating.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Message -->
+          <div v-if="updateError" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+            <div class="flex items-start">
+              <span class="text-xl mr-2">⚠️</span>
+              <div>
+                <p class="text-sm font-medium text-red-900 mb-1">Update Failed</p>
+                <p class="text-sm text-red-700">{{ updateError }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 pt-4 border-t">
+            <button 
+              type="button"
+              @click="cancelEdit"
+              :disabled="isUpdating"
+              class="w-full sm:flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit"
+              :disabled="isUpdating"
+              class="w-full sm:flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center"
+            >
+              <span v-if="!isUpdating" class="flex items-center">
+                <span class="mr-2">💾</span>
+                Save Changes
+              </span>
+              <span v-else class="flex items-center">
+                <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Updating...
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
     
     <!-- Chat Widget -->
     <ChatWidget />
@@ -429,7 +626,18 @@ export default {
         search: '',
         role: '',
         status: ''
-      }
+      },
+      // Edit form
+      editForm: {
+        full_name: '',
+        email: '',
+        username: '',
+        organization: '',
+        role: 'user',
+        is_active: true
+      },
+      isUpdating: false,
+      updateError: ''
     }
   },
   computed: {
@@ -573,8 +781,70 @@ export default {
       this.showViewModal = true;
     },
     editUser(user) {
-      alert('Edit user functionality coming soon!');
-      // TODO: Implement edit modal
+      this.selectedUser = user;
+      this.editForm = {
+        full_name: user.full_name,
+        email: user.email,
+        username: user.username,
+        organization: user.organization || '',
+        role: user.role,
+        is_active: user.is_active
+      };
+      this.updateError = '';
+      this.showEditModal = true;
+    },
+    async updateUser() {
+      this.isUpdating = true;
+      this.updateError = '';
+
+      try {
+        const token = localStorage.getItem('authToken');
+        
+        const response = await fetch(`http://localhost:8000/api/admin/users/${this.selectedUser.id}/update/`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.editForm)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.success) {
+            // Update local user data
+            const index = this.users.findIndex(u => u.id === this.selectedUser.id);
+            if (index !== -1) {
+              this.users[index] = { ...this.users[index], ...this.editForm };
+            }
+            
+            // Reapply filters
+            this.filterUsers();
+            
+            // Close modal
+            this.showEditModal = false;
+            this.selectedUser = null;
+            
+            alert('User updated successfully!');
+          } else {
+            this.updateError = data.message || 'Failed to update user';
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          this.updateError = errorData.message || `Error: ${response.status}`;
+        }
+      } catch (error) {
+        console.error('Update error:', error);
+        this.updateError = 'Network error: ' + error.message;
+      } finally {
+        this.isUpdating = false;
+      }
+    },
+    cancelEdit() {
+      this.showEditModal = false;
+      this.selectedUser = null;
+      this.updateError = '';
     },
     chatWithUser(user) {
       // Emit event to open chat with specific user

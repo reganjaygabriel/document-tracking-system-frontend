@@ -16,7 +16,7 @@
       ]"
     >
       <div class="p-6">
-        <h1 class="text-xl lg:text-2xl font-bold text-primary-600">DocTrack</h1>
+        <h1 class="text-xl lg:text-2xl font-bold text-primary-600">TraceDocs</h1>
         <p class="text-xs lg:text-sm text-gray-500">Document Management</p>
       </div>
       
@@ -38,6 +38,15 @@
         >
           <span class="text-xl mr-3">📄</span>
           <span class="font-medium">Documents</span>
+        </router-link>
+        <router-link 
+          to="/archive"
+          class="flex items-center px-6 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors duration-200"
+          active-class="bg-primary-50 text-primary-600 border-r-4 border-primary-600"
+          @click="showMobileMenu = false"
+        >
+          <span class="text-xl mr-3">🗄️</span>
+          <span class="font-medium">Archive</span>
         </router-link>
       </nav>
     </aside>
@@ -95,9 +104,9 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
           <div 
-            v-for="stat in stats" 
+            v-for="(stat, index) in stats" 
             :key="stat.title"
-            class="card hover:shadow-lg transition-shadow duration-200"
+            :class="['card', 'hover-lift', 'animate-slideUp', `stagger-${index + 1}`]"
           >
             <div class="flex items-center justify-between">
               <div>
@@ -108,7 +117,7 @@
                   <span class="text-gray-500 ml-1 hidden sm:inline">vs last month</span>
                 </p>
               </div>
-              <div :class="`text-3xl lg:text-4xl ${stat.color}`">
+              <div :class="`text-3xl lg:text-4xl ${stat.color} animate-float`">
                 {{ stat.icon }}
               </div>
             </div>
@@ -118,7 +127,7 @@
         <!-- Charts and Recent Activity -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
           <!-- Document Status Overview -->
-          <div class="lg:col-span-2 card">
+          <div class="lg:col-span-2 card animate-slideInLeft">
             <h2 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Document Status Overview</h2>
             <div class="space-y-4">
               <div v-for="status in documentStatus" :key="status.name">
@@ -126,9 +135,9 @@
                   <span class="text-sm font-medium text-gray-700">{{ status.name }}</span>
                   <span class="text-sm font-semibold text-gray-900">{{ status.count }} ({{ status.percentage }}%)</span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                   <div 
-                    class="h-2 rounded-full transition-all duration-300"
+                    class="h-2 rounded-full transition-all duration-1000 ease-out"
                     :style="{ 
                       width: status.percentage + '%',
                       backgroundColor: getStatusColor(status.name)
@@ -140,14 +149,14 @@
           </div>
 
           <!-- Quick Actions -->
-          <div class="card">
+          <div class="card animate-slideInRight">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div class="space-y-3">
               <button 
-                v-for="action in quickActions" 
+                v-for="(action, index) in quickActions" 
                 :key="action.name"
                 @click="handleQuickAction(action.name)"
-                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200"
+                :class="['w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 hover-scale', `stagger-${index + 1}`, 'animate-scaleIn']"
               >
                 <span class="text-2xl mr-3">{{ action.icon }}</span>
                 <span class="font-medium text-gray-700">{{ action.name }}</span>
@@ -157,13 +166,13 @@
         </div>
 
         <!-- Recent Documents Table -->
-        <div class="card">
+        <div class="card animate-slideUp">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-semibold text-gray-900">Recent Documents</h2>
             <div class="flex space-x-2">
               <select 
                 v-model="filterStatus"
-                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -171,7 +180,7 @@
                 <option value="rejected">Rejected</option>
                 <option value="in-review">In Review</option>
               </select>
-              <button @click="showUploadModal = true" class="btn-primary">
+              <button @click="showUploadModal = true" class="btn-primary hover-scale">
                 + New Document
               </button>
             </div>
@@ -193,11 +202,11 @@
                 <tr 
                   v-for="doc in filteredDocuments" 
                   :key="doc.id"
-                  class="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150"
+                  class="border-b border-gray-100 hover:bg-gradient-to-r hover:from-primary-50 hover:to-blue-50 transition-all duration-300 transform hover:scale-[1.01]"
                 >
                   <td class="py-4 px-4">
                     <div class="flex items-center">
-                      <span class="text-2xl mr-3">{{ doc.icon }}</span>
+                      <span class="text-2xl mr-3 animate-bounce-slow">{{ doc.icon }}</span>
                       <div>
                         <p class="font-medium text-gray-900">{{ doc.name }}</p>
                         <p class="text-xs text-gray-500">{{ doc.size }}</p>
@@ -207,7 +216,7 @@
                   <td class="py-4 px-4 text-sm text-gray-700">{{ doc.type }}</td>
                   <td class="py-4 px-4">
                     <div class="flex items-center">
-                      <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-semibold text-xs mr-2">
+                      <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-semibold text-xs mr-2 hover-scale">
                         {{ doc.owner.initials }}
                       </div>
                       <span class="text-sm text-gray-700">{{ doc.owner.name }}</span>
@@ -216,7 +225,7 @@
                   <td class="py-4 px-4">
                     <span 
                       :class="getStatusClass(doc.status)"
-                      class="px-3 py-1 rounded-full text-xs font-semibold"
+                      class="px-3 py-1 rounded-full text-xs font-semibold animate-pulse-slow"
                     >
                       {{ doc.status }}
                     </span>
@@ -226,11 +235,11 @@
                     <div class="flex space-x-2">
                       <button 
                         @click="viewDocument(doc)"
-                        class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors duration-200"
+                        class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-all duration-200 hover-scale"
                       >
                         View
                       </button>
-                      <button class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition-colors duration-200">Delete</button>
+                      <button class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition-all duration-200 hover-scale">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -244,11 +253,11 @@
               Showing <span class="font-medium">1-{{ filteredDocuments.length }}</span> of <span class="font-medium">{{ documents.length }}</span> documents
             </p>
             <div class="flex space-x-2">
-              <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm">Previous</button>
-              <button class="px-3 py-1 bg-primary-600 text-white rounded text-sm">1</button>
-              <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm">2</button>
-              <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm">3</button>
-              <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm">Next</button>
+              <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm transition-all duration-200 hover-scale">Previous</button>
+              <button class="px-3 py-1 bg-primary-600 text-white rounded text-sm hover-glow">1</button>
+              <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm transition-all duration-200 hover-scale">2</button>
+              <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm transition-all duration-200 hover-scale">3</button>
+              <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm transition-all duration-200 hover-scale">Next</button>
             </div>
           </div>
         </div>
@@ -1015,11 +1024,121 @@
               <p v-else class="text-gray-500 text-center py-8">Loading text content...</p>
             </div>
 
-            <!-- Office Documents (Word, Excel, PowerPoint) -->
-            <div v-else-if="['DOC', 'DOCX', 'XLS', 'XLSX', 'PPT', 'PPTX'].includes(selectedDocument.type)" class="bg-gray-50 rounded-lg p-8 text-center">
-              <span class="text-6xl mb-4 block">{{ selectedDocument.icon }}</span>
-              <p class="text-gray-700 mb-4">Preview not available for {{ selectedDocument.type }} files</p>
-              <p class="text-sm text-gray-500 mb-4">Download the file to view its contents</p>
+            <!-- Office Documents (Word, Excel, PowerPoint) - WITH PREVIEW -->
+            <div v-else-if="['DOC', 'DOCX', 'XLS', 'XLSX', 'PPT', 'PPTX'].includes(selectedDocument.type)" class="bg-gray-50 rounded-lg p-4">
+              <div class="mb-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span class="text-4xl">{{ selectedDocument.icon }}</span>
+                  <div>
+                    <p class="text-lg font-semibold text-gray-900">{{ selectedDocument.type }} Document</p>
+                    <p class="text-sm text-gray-600">{{ selectedDocument.name }}</p>
+                  </div>
+                </div>
+                <div class="flex space-x-2">
+                  <button 
+                    @click="openInNewTab(selectedDocument)"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors text-sm"
+                  >
+                    <span class="mr-2">🔗</span>
+                    Open
+                  </button>
+                  <button 
+                    @click="downloadDocument(selectedDocument)"
+                    class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center transition-colors text-sm"
+                  >
+                    <span class="mr-2">⬇️</span>
+                    Download
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Document Information Card -->
+              <div class="bg-white rounded-lg border-2 border-gray-200 p-6 mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Document Information</h3>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-sm font-medium text-gray-600">File Name</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.name }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-600">File Type</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.type }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-600">File Size</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.size }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-600">Last Modified</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.lastModified }}</p>
+                  </div>
+                  <div class="col-span-2">
+                    <p class="text-sm font-medium text-gray-600">Description</p>
+                    <p class="text-sm text-gray-900 mt-1">{{ selectedDocument.description || 'No description available' }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Office Document Preview using Microsoft Office Online Viewer -->
+              <div class="bg-white rounded-lg border-2 border-gray-200 overflow-hidden mb-4" style="height: 600px;">
+                <iframe 
+                  :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedDocument.file_url)}`"
+                  class="w-full h-full"
+                  frameborder="0"
+                  @load="handlePreviewLoad"
+                  @error="handlePreviewError"
+                >
+                </iframe>
+              </div>
+              
+              <!-- Alternative Preview Options -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <!-- Google Docs Viewer Alternative -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+                  <div class="flex items-center mb-2">
+                    <span class="text-2xl mr-2">📄</span>
+                    <h4 class="font-semibold text-blue-900">Google Docs Viewer</h4>
+                  </div>
+                  <p class="text-sm text-blue-700 mb-3">View with Google's document viewer</p>
+                  <a 
+                    :href="`https://docs.google.com/gview?url=${encodeURIComponent(selectedDocument.file_url)}&embedded=true`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                  >
+                    Open in Google Viewer
+                  </a>
+                </div>
+
+                <!-- Microsoft Office Online Alternative -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+                  <div class="flex items-center mb-2">
+                    <span class="text-2xl mr-2">📊</span>
+                    <h4 class="font-semibold text-green-900">Office Online</h4>
+                  </div>
+                  <p class="text-sm text-green-700 mb-3">View with Microsoft Office Online</p>
+                  <a 
+                    :href="`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(selectedDocument.file_url)}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+                  >
+                    Open in Office Online
+                  </a>
+                </div>
+              </div>
+              
+              <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <div class="flex items-start">
+                  <span class="text-lg mr-2">ℹ️</span>
+                  <div>
+                    <p class="text-sm text-blue-900 font-medium">Office Document Preview</p>
+                    <p class="text-xs text-blue-700 mt-1">
+                      Preview powered by Microsoft Office Online Viewer. If preview doesn't load, try the alternative viewers above or download the file to view in Microsoft Office or compatible software.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Unsupported Preview -->
@@ -1056,6 +1175,7 @@
 </template>
 
 <style scoped>
+/* Fade In Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1071,6 +1191,213 @@
   animation: fadeIn 0.2s ease-out;
 }
 
+/* Slide Up Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s ease-out;
+}
+
+/* Slide In From Left */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+/* Slide In From Right */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+/* Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Rotate Animation */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-rotate {
+  animation: rotate 2s linear infinite;
+}
+
+/* Scale In Animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glow Animation */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Progress Bar Animation */
+@keyframes progressBar {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
+.animate-progress {
+  animation: progressBar 1s ease-out forwards;
+}
+
+/* Stagger Animation Delays */
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.stagger-4 {
+  animation-delay: 0.4s;
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
@@ -1087,6 +1414,40 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Card Styles */
+.card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Button Styles */
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 </style>
 
@@ -1342,6 +1703,18 @@ export default {
         alert('Error downloading document');
       }
     },
+    handlePreviewLoad(event) {
+      console.log('Preview loaded successfully');
+    },
+    handlePreviewError(event) {
+      console.error('Preview failed to load:', event);
+      // Optionally show a message to the user
+    },
+    openInNewTab(document) {
+      if (document.file_url) {
+        window.open(document.file_url, '_blank', 'noopener,noreferrer');
+      }
+    },
     handleLogout() {
       // Clear authentication
       localStorage.removeItem('authToken');
@@ -1528,7 +1901,7 @@ export default {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)} Report - DocTrack</title>
+          <title>${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)} Report - TraceDocs</title>
           <style>
             body {
               font-family: Arial, sans-serif;
@@ -1669,7 +2042,7 @@ export default {
       
       // Add header
       csvContent += `${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)} Report\n`;
-      csvContent += `DocTrack Document Management System\n`;
+      csvContent += `TraceDocs Document Management System\n`;
       csvContent += `Generated on: ${date}\n`;
       csvContent += `Generated by: ${this.userName}\n\n`;
       
@@ -1735,7 +2108,7 @@ export default {
       let content = `
         <div class="header">
           <h1>📊 ${this.reportType.charAt(0).toUpperCase() + this.reportType.slice(1)} Report</h1>
-          <p><strong>DocTrack Document Management System</strong></p>
+          <p><strong>TraceDocs Document Management System</strong></p>
           <p>Generated on: ${date}</p>
           <p>Generated by: ${this.userName} (${this.userEmail})</p>
         </div>
@@ -1861,8 +2234,8 @@ export default {
 
       content += `
         <div class="footer">
-          <p>This report was automatically generated by DocTrack Document Management System</p>
-          <p>&copy; ${new Date().getFullYear()} DocTrack. All rights reserved.</p>
+          <p>This report was automatically generated by TraceDocs Document Management System</p>
+          <p>&copy; ${new Date().getFullYear()} TraceDocs. All rights reserved.</p>
         </div>
       `;
 

@@ -9,7 +9,7 @@
           </div>
         </div>
         <h2 class="text-3xl font-bold text-gray-900">Welcome Back</h2>
-        <p class="mt-2 text-sm text-gray-600">Sign in to your DocTrack account</p>
+        <p class="mt-2 text-sm text-gray-600">Sign in to your TraceDocs account</p>
       </div>
 
       <!-- Login Form -->
@@ -146,7 +146,7 @@
 
       <!-- Footer -->
       <p class="mt-8 text-center text-xs text-gray-500">
-        © 2026 DocTrack. All rights reserved.
+        © 2026 TraceDocs. All rights reserved.
       </p>
     </div>
   </div>

@@ -9,7 +9,7 @@
           </div>
         </div>
         <h2 class="text-3xl font-bold text-gray-900">Create Account</h2>
-        <p class="mt-2 text-sm text-gray-600">Join DocTrack and manage your documents</p>
+        <p class="mt-2 text-sm text-gray-600">Join TraceDocs and manage your documents</p>
       </div>
 
       <!-- Signup Form -->
@@ -224,7 +224,7 @@
 
       <!-- Footer -->
       <p class="mt-8 text-center text-xs text-gray-500">
-        © 2026 DocTrack. All rights reserved.
+        © 2026 TraceDocs. All rights reserved.
       </p>
     </div>
   </div>

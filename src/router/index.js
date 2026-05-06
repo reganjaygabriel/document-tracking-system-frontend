@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Dashboard from '../views/Dashboard.vue'
 import Documents from '../views/Documents.vue'
+import Archive from '../views/Archive.vue'
 import Profile from '../views/Profile.vue'
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
@@ -11,6 +12,7 @@ import AdminDocuments from '../views/admin/AdminDocuments.vue'
 import AdminUsers from '../views/admin/AdminUsers.vue'
 import AdminAnalytics from '../views/admin/AdminAnalytics.vue'
 import AdminProfile from '../views/admin/AdminProfile.vue'
+import AdminArchive from '../views/admin/AdminArchive.vue'
 
 const routes = [
   // Public routes
@@ -49,6 +51,12 @@ const routes = [
     meta: { requiresAuth: true, role: 'user' }
   },
   {
+    path: '/archive',
+    name: 'Archive',
+    component: Archive,
+    meta: { requiresAuth: true, role: 'user' }
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: Profile,
@@ -72,6 +80,12 @@ const routes = [
     path: '/admin/documents',
     name: 'AdminDocuments',
     component: AdminDocuments,
+    meta: { requiresAuth: true, role: 'admin' }
+  },
+  {
+    path: '/admin/archive',
+    name: 'AdminArchive',
+    component: AdminArchive,
     meta: { requiresAuth: true, role: 'admin' }
   },
   {

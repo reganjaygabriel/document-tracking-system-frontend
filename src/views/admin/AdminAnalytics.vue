@@ -3,7 +3,7 @@
     <!-- Admin Sidebar -->
     <aside class="w-64 bg-gradient-to-b from-indigo-600 to-purple-700 shadow-lg">
       <div class="p-6">
-        <h1 class="text-2xl font-bold text-white">DocTrack Admin</h1>
+        <h1 class="text-2xl font-bold text-white">TraceDocs Admin</h1>
         <p class="text-sm text-indigo-200">Administration Panel</p>
       </div>
       
@@ -36,6 +36,13 @@
           <span class="text-xl mr-3">📈</span>
           <span class="font-medium">Analytics</span>
         </router-link>
+        <router-link 
+          to="/admin/archive"
+          class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+        >
+          <span class="text-xl mr-3">🗄️</span>
+          <span class="font-medium">Archive</span>
+        </router-link>
       </nav>
       
       <!-- Admin Badge -->
@@ -50,7 +57,7 @@
     <!-- Main Content -->
     <div class="flex-1 overflow-auto">
       <!-- Header -->
-      <header class="bg-white shadow-sm">
+      <header class="bg-white shadow-sm sticky top-0 z-20">
         <div class="flex items-center justify-between px-8 py-4">
           <div>
             <h2 class="text-2xl font-bold text-gray-900">Analytics</h2>

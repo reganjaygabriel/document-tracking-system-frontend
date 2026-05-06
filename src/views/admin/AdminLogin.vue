@@ -146,7 +146,7 @@
 
       <!-- Footer -->
       <p class="mt-8 text-center text-xs text-gray-500">
-        © 2026 DocTrack Admin. All rights reserved.
+        © 2026 TraceDocs Admin. All rights reserved.
       </p>
     </div>
   </div>

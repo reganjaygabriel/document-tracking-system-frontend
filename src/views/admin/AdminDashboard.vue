@@ -16,7 +16,7 @@
       ]"
     >
       <div class="p-6">
-        <h1 class="text-xl lg:text-2xl font-bold text-white">DocTrack Admin</h1>
+        <h1 class="text-xl lg:text-2xl font-bold text-white">TraceDocs Admin</h1>
         <p class="text-xs lg:text-sm text-indigo-200">Administration Panel</p>
       </div>
       
@@ -53,6 +53,14 @@
         >
           <span class="text-xl mr-3">📈</span>
           <span class="font-medium">Analytics</span>
+        </router-link>
+        <router-link 
+          to="/admin/archive"
+          class="flex items-center px-6 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-colors duration-200"
+          @click="showMobileMenu = false"
+        >
+          <span class="text-xl mr-3">🗄️</span>
+          <span class="font-medium">Archive</span>
         </router-link>
       </nav>
       
@@ -125,87 +133,87 @@
       <main class="p-4 lg:p-8">
         <!-- Admin Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
-          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-blue-500">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-blue-500 hover-lift animate-slideUp stagger-1">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-xs lg:text-sm font-medium text-gray-600">Total Users</p>
                 <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ stats[2]?.value || '0' }}</p>
                 <p class="text-xs lg:text-sm text-green-600 mt-2">{{ stats[3]?.value || '0' }} active</p>
               </div>
-              <div class="text-3xl lg:text-4xl">👥</div>
+              <div class="text-3xl lg:text-4xl animate-float">👥</div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-green-500">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-green-500 hover-lift animate-slideUp stagger-2">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-xs lg:text-sm font-medium text-gray-600">Total Documents</p>
                 <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ stats[0]?.value || '0' }}</p>
                 <p class="text-xs lg:text-sm text-blue-600 mt-2">All documents</p>
               </div>
-              <div class="text-3xl lg:text-4xl">📄</div>
+              <div class="text-3xl lg:text-4xl animate-float">📄</div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-yellow-500">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-yellow-500 hover-lift animate-slideUp stagger-3">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-xs lg:text-sm font-medium text-gray-600">Pending Review</p>
                 <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ stats[1]?.value || '0' }}</p>
                 <p class="text-xs lg:text-sm text-yellow-600 mt-2">Awaiting approval</p>
               </div>
-              <div class="text-3xl lg:text-4xl">⏳</div>
+              <div class="text-3xl lg:text-4xl animate-float">⏳</div>
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-purple-500">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 border-l-4 border-purple-500 hover-lift animate-slideUp stagger-4">
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-xs lg:text-sm font-medium text-gray-600">Storage Used</p>
                 <p class="text-2xl lg:text-3xl font-bold text-gray-900 mt-2">{{ formatBytes(totalStorage) }}</p>
                 <p class="text-xs lg:text-sm text-purple-600 mt-2">Total files</p>
               </div>
-              <div class="text-3xl lg:text-4xl">💾</div>
+              <div class="text-3xl lg:text-4xl animate-float">💾</div>
             </div>
           </div>
         </div>
 
         <!-- Quick Admin Actions -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
-          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6">
+          <div class="bg-white rounded-xl shadow-md p-4 lg:p-6 animate-slideInLeft">
             <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div class="space-y-3">
               <button 
                 @click="$router.push('/admin/users')"
-                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
+                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200 hover-scale animate-scaleIn stagger-1"
               >
                 <span class="text-xl lg:text-2xl mr-3">👤</span>
                 <span class="font-medium text-gray-700 text-sm lg:text-base">Manage Users</span>
               </button>
               <button 
                 @click="$router.push('/admin/documents')"
-                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
+                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200 hover-scale animate-scaleIn stagger-2"
               >
                 <span class="text-xl lg:text-2xl mr-3">📁</span>
                 <span class="font-medium text-gray-700 text-sm lg:text-base">View All Documents</span>
               </button>
               <button 
                 @click="openChatWidget"
-                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
+                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200 hover-scale animate-scaleIn stagger-3"
               >
                 <span class="text-xl lg:text-2xl mr-3">💬</span>
                 <span class="font-medium text-gray-700 text-sm lg:text-base">Open Chat</span>
               </button>
               <button 
                 @click="showReportModal = true"
-                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
+                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200 hover-scale animate-scaleIn stagger-4"
               >
                 <span class="text-xl lg:text-2xl mr-3">📊</span>
                 <span class="font-medium text-gray-700 text-sm lg:text-base">Generate Report</span>
               </button>
               <button 
                 @click="$router.push('/admin/analytics')"
-                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200"
+                class="w-full flex items-center p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200 hover-scale animate-scaleIn stagger-4"
               >
                 <span class="text-xl lg:text-2xl mr-3">📈</span>
                 <span class="font-medium text-gray-700 text-sm lg:text-base">View Analytics</span>
@@ -213,31 +221,31 @@
             </div>
           </div>
 
-          <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-4 lg:p-6">
+          <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-4 lg:p-6 animate-slideInRight">
             <h3 class="text-base lg:text-lg font-semibold text-gray-900 mb-4">System Overview</h3>
             <div class="grid grid-cols-2 gap-3 lg:gap-4">
               <!-- Storage Usage -->
-              <div class="p-3 lg:p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+              <div class="p-3 lg:p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg hover-lift animate-scaleIn stagger-1">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-xs lg:text-sm font-medium text-blue-900">Storage Used</span>
-                  <span class="text-xl lg:text-2xl">💾</span>
+                  <span class="text-xl lg:text-2xl animate-bounce-slow">💾</span>
                 </div>
                 <p class="text-lg lg:text-2xl font-bold text-blue-900">{{ formatBytes(totalStorage) }}</p>
                 <p class="text-xs text-blue-700 mt-1">Total file storage</p>
               </div>
 
               <!-- Active Users Today -->
-              <div class="p-3 lg:p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+              <div class="p-3 lg:p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg hover-lift animate-scaleIn stagger-2">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-xs lg:text-sm font-medium text-green-900">Active Today</span>
-                  <span class="text-xl lg:text-2xl">👥</span>
+                  <span class="text-xl lg:text-2xl animate-bounce-slow">👥</span>
                 </div>
                 <p class="text-lg lg:text-2xl font-bold text-green-900">{{ activeUsersToday }}</p>
                 <p class="text-xs text-green-700 mt-1">Users online today</p>
               </div>
 
               <!-- Pending Approvals -->
-              <div class="p-3 lg:p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg">
+              <div class="p-3 lg:p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg hover-lift animate-scaleIn stagger-3">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-xs lg:text-sm font-medium text-yellow-900">Pending</span>
                   <span class="text-xl lg:text-2xl">⏳</span>
@@ -260,12 +268,12 @@
         </div>
 
         <!-- Recent Activity -->
-        <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="bg-white rounded-xl shadow-md p-6 animate-slideUp">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Recent Activity</h3>
             <button 
               @click="loadRecentActivity"
-              class="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+              class="text-sm text-indigo-600 hover:text-indigo-700 font-medium hover-scale"
             >
               🔄 Refresh
             </button>
@@ -277,7 +285,7 @@
           </div>
           
           <div v-else-if="recentActivity.length === 0" class="text-center py-8 text-gray-500">
-            <span class="text-4xl mb-2 block">📋</span>
+            <span class="text-4xl mb-2 block animate-bounce-slow">📋</span>
             <p>No recent activity</p>
           </div>
           
@@ -285,10 +293,10 @@
             <div 
               v-for="activity in recentActivity" 
               :key="activity.id"
-              class="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+              class="flex items-start space-x-3 p-3 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50 rounded-lg transition-all duration-300 hover-scale"
             >
               <div class="flex-shrink-0">
-                <span class="text-2xl">{{ getActivityIcon(activity.type) }}</span>
+                <span class="text-2xl animate-bounce-slow">{{ getActivityIcon(activity.type) }}</span>
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900">{{ activity.title }}</p>
@@ -301,7 +309,7 @@
               <div class="flex-shrink-0">
                 <span 
                   :class="getActivityBadgeClass(activity.type)"
-                  class="px-2 py-1 text-xs font-semibold rounded-full"
+                  class="px-2 py-1 text-xs font-semibold rounded-full animate-pulse-slow"
                 >
                   {{ activity.type }}
                 </span>
@@ -459,6 +467,27 @@
     <div v-if="showUserManagement" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     </div>
     
+    <!-- Delete Notification Confirmation Modal -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      type="danger"
+      title="Delete Notification"
+      subtitle="This action cannot be undone"
+      message="Are you sure you want to delete this notification? It will be permanently removed from your notification list."
+      icon="🗑️"
+      itemName="Notification"
+      itemIcon="🔔"
+      infoMessage="This notification will be permanently deleted and cannot be recovered."
+      infoTitle="Permanent Action"
+      confirmText="Delete Notification"
+      confirmIcon="🗑️"
+      cancelText="Cancel"
+      :loading="isDeletingNotification"
+      loadingText="Deleting..."
+      @confirm="confirmDeleteNotification"
+      @cancel="cancelDeleteNotification"
+    />
+    
     <!-- Chat Widget -->
     <ChatWidget />
   </div>
@@ -466,12 +495,14 @@
 
 <script>
 import ChatWidget from '../../components/ChatWidget.vue'
+import ConfirmModal from '../../components/ConfirmModal.vue'
 import eventBus from '../../eventBus.js'
 
 export default {
   name: 'AdminDashboard',
   components: {
-    ChatWidget
+    ChatWidget,
+    ConfirmModal
   },
   data() {
     return {
@@ -500,7 +531,11 @@ export default {
       reportType: 'complete',
       reportDateRange: 'month',
       reportFormat: 'pdf',
-      isGeneratingReport: false
+      isGeneratingReport: false,
+      // Confirm Modal
+      showConfirmModal: false,
+      notificationToDelete: null,
+      isDeletingNotification: false
     }
   },
   computed: {
@@ -730,7 +765,7 @@ export default {
           </div>
           
           <div class="footer">
-            <p>DocTrack Admin System Report</p>
+            <p>TraceDocs Admin System Report</p>
             <p>This report is confidential and intended for authorized personnel only.</p>
           </div>
         </body>
@@ -854,10 +889,19 @@ export default {
       }
     },
     async deleteNotification(notificationId) {
+      // Store the notification to delete and show confirmation modal
+      this.notificationToDelete = notificationId;
+      this.showConfirmModal = true;
+    },
+    async confirmDeleteNotification() {
+      if (!this.notificationToDelete) return;
+      
+      this.isDeletingNotification = true;
+      
       try {
         const token = localStorage.getItem('authToken');
         
-        const response = await fetch(`http://localhost:8000/api/notifications/${notificationId}/delete/`, {
+        const response = await fetch(`http://localhost:8000/api/notifications/${this.notificationToDelete}/delete/`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -866,7 +910,7 @@ export default {
         
         if (response.ok) {
           // Remove from local state
-          const index = this.notifications.findIndex(n => n.id === notificationId);
+          const index = this.notifications.findIndex(n => n.id === this.notificationToDelete);
           if (index !== -1) {
             const wasUnread = !this.notifications[index].is_read;
             this.notifications.splice(index, 1);
@@ -874,10 +918,22 @@ export default {
               this.unreadCount = Math.max(0, this.unreadCount - 1);
             }
           }
+          
+          // Close modal
+          this.showConfirmModal = false;
+          this.notificationToDelete = null;
         }
       } catch (error) {
         console.error('Error deleting notification:', error);
+        alert('Failed to delete notification');
+      } finally {
+        this.isDeletingNotification = false;
       }
+    },
+    cancelDeleteNotification() {
+      this.showConfirmModal = false;
+      this.notificationToDelete = null;
+      this.isDeletingNotification = false;
     },
     getNotificationIcon(type) {
       const icons = {
@@ -1025,5 +1081,195 @@ export default {
 <style scoped>
 .card {
   @apply bg-white rounded-xl shadow-md p-6;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Slide Up Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s ease-out;
+}
+
+/* Slide In From Left */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+/* Slide In From Right */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+/* Scale In Animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glow Animation */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Stagger Animation Delays */
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.stagger-4 {
+  animation-delay: 0.4s;
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Gradient Hover */
+.hover-gradient:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  transition: background 0.3s ease;
 }
 </style>
